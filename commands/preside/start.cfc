@@ -50,28 +50,43 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 	 * 
 	 */
 	private void function _prepareDirectories( required struct serverInfo ) output=false {
-		serverInfo.serverConfigDir = fileSystemUtil.resolveDirectory( shell.getHomeDir() & "/server/" );
-		serverInfo.webConfigDir    = fileSystemUtil.resolveDirectory( shell.getHomeDir() & "/server/custom/" & serverInfo.name );
+		serverInfo.serverConfigDir = shell.getHomeDir() & "/server";
 
-		var presideDir = fileSystemUtil.resolveDirectory( serverInfo.webConfigDir & "/preside" );
-		var resourceDir = fileSystemUtil.resolveDirectory( GetDirectoryFromPath( GetCurrentTemplatePath() ) & "/_resources" );
+		var webDir      = serverInfo.serverConfigDir & "/custom/" & serverInfo.name;
+		var presideDir  = webDir & "/preside";
+		var resourceDir = GetDirectoryFromPath( GetCurrentTemplatePath() ) & "/_resources";
+		
+		serverInfo.webConfigDir    = webDir & "/web";
 
+		if ( !DirectoryExists( webDir ) ) {
+			DirectoryCreate( webDir );
+		}
 		if ( !DirectoryExists( serverInfo.webConfigDir ) ) {
-			DirectoryCreate( serverInfo.webConfigDir );
+			DirectoryCopy( serverInfo.serverConfigDir & "/railo-web", serverInfo.webConfigDir );
+			FileCopy( resourceDir & "/railo-web.xml.cfm", serverInfo.webConfigDir & "/railo-web.xml.cfm" );
+
+			// TODO: something MUCH better here please!
+			// i.e. allow user to select version of preside, etc.
+			var presideZip = "#resourceDir#/PresideCMS-0.1.0.zip";			
+			if ( !FileExists() ) {
+				http getasBinary=true file=presideZip url="http://downloads.presidecms.com/stable/PresideCMS-0.1.0.zip";
+			}
+			zip action="unzip" file="#resourceDir#/PresideCMS-0.1.0.zip" destination=serverInfo.webConfigDir;
+
 		}
 		if ( !DirectoryExists( presideDir ) ) {
 			DirectoryCreate( presideDir );
-			zip action="unzip" file="#resourceDir#/PresideServer.zip" destination="#presideDir#";
+			zip action="unzip" file="#resourceDir#/PresideServer.zip" destination=presideDir;
 			var webxml = FileRead( presideDir   & "/web.xml" );
-			webxml = ReplaceNoCase( webxml, "${webConfigDir}", serverInfo.webConfigDir, "all" );
+			webxml = ReplaceNoCase( webxml, "${webConfigDir}"   , serverInfo.webConfigDir, "all" );
 			webxml = ReplaceNoCase( webxml, "${serverConfigDir}", serverInfo.serverConfigDir, "all" );
 			FileWrite( presideDir & "/web.xml", webxml );
 		}
 
 
-		serverInfo.libDirs  = fileSystemUtil.resolveDirectory( presideDir  & "/lib" );
-		serverInfo.webXml   = fileSystemUtil.resolveDirectory( presideDir  & "/web.xml" );
-		serverInfo.trayIcon = fileSystemUtil.resolveDirectory( resourceDir & "/trayicon.png" );
+		serverInfo.libDirs  = presideDir  & "/lib";
+		serverInfo.webXml   = presideDir  & "/web.xml";
+		serverInfo.trayIcon = resourceDir & "/trayicon.png";
 	}
 
 }
