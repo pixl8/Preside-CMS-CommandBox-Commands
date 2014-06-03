@@ -56,9 +56,9 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 	private void function _prepareDirectories( required struct serverInfo ) output=true {
 		serverInfo.serverConfigDir = shell.getHomeDir() & "/server";
 
-		var webDir      = serverInfo.serverConfigDir & "/custom/" & serverInfo.name;
+		var webDir            = serverInfo.serverConfigDir & "/custom/" & serverInfo.name;
 		var presideServerDir  = webDir & "/preside";
-		var resourceDir = GetDirectoryFromPath( GetCurrentTemplatePath() ) & "/_resources";
+		var resourceDir       = GetDirectoryFromPath( GetCurrentTemplatePath() ) & "/_resources";
 		
 		serverInfo.webConfigDir    = webDir & "/web";
 
@@ -69,47 +69,13 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 		if ( !DirectoryExists( serverInfo.webConfigDir ) ) {
 			DirectoryCopy( serverInfo.serverConfigDir & "/railo-web", serverInfo.webConfigDir, true );
 
-			print.line().toConsole();
-			var presideLocation = shell.ask( "Install fresh version of Preside [Y/n]? " );
-			if ( presideLocation == "n" ) {
-				print.line().toConsole();
-				var presideLocation = shell.ask( "Enter the path to Preside: " );
-				while( !DirectoryExists( presideLocation ) && !FileExists( presideLocation & "/system/BaseApplication.cfc" ) ) {
-					print.redLine( "The path you entered is not a valid Preside path!").toConsole();
-					presideLocation = shell.ask( "Enter the path to Preside: " );
-				}
-
-			} else {
-				var validVersion = false;
-
-				while ( !validVersion ) {
-					validVersion = true;
-					print.line().toConsole();
-					presideVersion  = shell.ask( "Which version of preside do you wish to install? (0.1.0) " );
-					if ( !Len( Trim( presideVersion ) ) ) {
-						presideVersion = "0.1.0";
-					}
-					presideLocation = "http://downloads.presidecms.com/bleeding-edge/PresideCMS-#presideVersion#.zip"; // in future this would be handled MUCH better!
-					
-					var presideZip = GetTempDirectory() & "/PresideCMS-#presideVersion#.zip";
-					try {
-						print.line( "Downloading Preside from [#presideLocation#]... please be patient" ).toConsole();
-						http getasBinary=true file=presideZip url=presideLocation throwOnError=true;
-					} catch ( any e ) {
-						validVersion = false;
-						print.redLine( "Invalid preside version [#presideVersion#]. No download found at [#presideLocation#]." ).toConsole();
-					}
-				}
-				
-				zip action="unzip" file="#presideZip#" destination=serverInfo.webConfigDir;
-
-				presideLocation = "{railo-web}/preside";
-			}
+			presideLocation = _setupPresideLocation( serverInfo.webConfigDir );
 
 			var railoWebXml = FileRead( resourceDir & "/railo-web.xml.cfm" );
 			railoWebXml = ReplaceNoCase( railoWebXml, "${presideLocation}", presideLocation );
 			FileWrite( serverInfo.webConfigDir & "/railo-web.xml.cfm", railoWebXml );
 		}
+
 		if ( !DirectoryExists( presideServerDir ) ) {
 			DirectoryCreate( presideServerDir );
 			zip action="unzip" file="#resourceDir#/PresideServer.zip" destination=presideServerDir;
@@ -122,6 +88,53 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 		serverInfo.libDirs  = presideServerDir  & "/lib";
 		serverInfo.webXml   = presideServerDir  & "/web.xml";
 		serverInfo.trayIcon = resourceDir & "/trayicon.png";
+	}
+
+	private string function _setupPresideLocation( required string webConfigDir ) output=false {
+		var presideLocation = "";
+
+		print.line().toConsole();
+		var useLocalVersion = shell.ask( "Install fresh version of Preside [Y/n]? " ) == "n";
+		if ( useLocalVersion ) {
+			print.line().toConsole();
+			presideLocation = shell.ask( "Enter the path to Preside: " );
+			while( !DirectoryExists( presideLocation ) || !FileExists( presideLocation & "/system/BaseApplication.cfc" ) ) {
+				print.redLine( "The path you entered is not a valid Preside path!").toConsole();
+				presideLocation = shell.ask( "Enter the path to Preside: " );
+			}
+
+		} else {
+			var validVersion   = false;
+			var presideVersion = "";
+
+			while ( !validVersion ) {
+				validVersion = true;
+				
+				print.line().toConsole();
+				presideVersion  = shell.ask( "Which version of preside do you wish to install? (0.1.0) " );
+				if ( !Len( Trim( presideVersion ) ) ) {
+					presideVersion = "0.1.0";
+				}
+				presideLocation = "http://downloads.presidecms.com/bleeding-edge/PresideCMS-#presideVersion#.zip"; // in future this would be handled MUCH better!
+				
+				var presideZip = GetTempDirectory() & "/PresideCMS-#presideVersion#.zip";
+				try {
+					print.yellowLine( "Downloading Preside from [#presideLocation#]... please be patient" ).toConsole();
+					http getasBinary=true file=presideZip url=presideLocation throwOnError=true;
+				} catch ( any e ) {
+					validVersion = false;
+					print.redLine( "Invalid preside version [#presideVersion#]. No download found at [#presideLocation#]." ).toConsole();
+				}
+			}
+			
+			print.yellowLine( "Download complete. Installing to [#arguments.webConfigDir#]/preside..." ).toConsole();
+			
+			zip action="unzip" file="#presideZip#" destination=arguments.webConfigDir;
+
+			presideLocation = "{railo-web}/preside";
+		}
+
+		return presideLocation;
 	}
 
 }
