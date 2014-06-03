@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<railo-configuration version="4.2">
-	<setting/>
+<railo-configuration version="4.2" pw="f76d0a69568e8afa331cc07973d31292f73500ec941a12614c22c16b0e5f7140">
+	
+	<!-- these settings have had their defaults set differently from the Railo defaults by the Preside Installer -->
+	<setting cfml-writer="white-space-pref" />
+	<compiler dot-notation-upper-case="false" />
+	<charset resource-charset="UTF-8" template-charset="UTF-8" web-charset="UTF-8"/>
+	<!-- end preside defaults -->
+
+	<mappings>
+		<!-- mapping to preside created by preside installer -->
+		<mapping archive="" physical="${presideLocation}" primary="physical" readonly="no" toplevel="no" trusted="false" virtual="/preside" />
+		
+		<mapping archive="{railo-web}/context/railo-context.ra" physical="{railo-web}/context/" primary="physical" readonly="yes" toplevel="yes" trusted="true" virtual="/railo-context/"/>
+	</mappings>	
 
 	<data-sources>
 	</data-sources>
@@ -26,10 +38,6 @@
 
 	<scheduler directory="{railo-web}/scheduler/"/>
 	
-	<mappings>
-		<mapping archive="{railo-web}/context/railo-context.ra" physical="{railo-web}/context/" primary="physical" readonly="yes" toplevel="yes" trusted="true" virtual="/railo-context/"/>
-		<mapping archive="" physical="{railo-web}/preside" primary="physical" readonly="yes" toplevel="yes" trusted="true" virtual="/preside" />
-	</mappings>	
 	
 	<custom-tag>
 		<mapping physical="{railo-web}/customtags/" trusted="yes"/>
