@@ -15,6 +15,7 @@
 	</mappings>	
 
 	<data-sources>
+		${datasource}
 	</data-sources>
 	
 	<resources>

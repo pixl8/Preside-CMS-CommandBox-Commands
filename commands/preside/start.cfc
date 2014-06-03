@@ -69,10 +69,12 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 		if ( !DirectoryExists( serverInfo.webConfigDir ) ) {
 			DirectoryCopy( serverInfo.serverConfigDir & "/railo-web", serverInfo.webConfigDir, true );
 
-			presideLocation = _setupPresideLocation( serverInfo.webConfigDir );
+			var presideLocation = _setupPresideLocation( serverInfo.webConfigDir );
+			var datasource      = _setupDatasource();
 
 			var railoWebXml = FileRead( resourceDir & "/railo-web.xml.cfm" );
 			railoWebXml = ReplaceNoCase( railoWebXml, "${presideLocation}", presideLocation );
+			railoWebXml = ReplaceNoCase( railoWebXml, "${datasource}", datasource );
 			FileWrite( serverInfo.webConfigDir & "/railo-web.xml.cfm", railoWebXml );
 		}
 
@@ -92,6 +94,11 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 
 	private string function _setupPresideLocation( required string webConfigDir ) output=false {
 		var presideLocation = "";
+
+		print.line().toConsole();
+		print.yellowLine( "PresideCMS core installation" ).toConsole();
+		print.yellowLine( "============================" ).toConsole();
+		print.line().toConsole();
 
 		print.line().toConsole();
 		var useLocalVersion = shell.ask( "Install fresh version of Preside [Y/n]? " ) == "n";
@@ -119,7 +126,8 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 				
 				var presideZip = GetTempDirectory() & "/PresideCMS-#presideVersion#.zip";
 				try {
-					print.yellowLine( "Downloading Preside from [#presideLocation#]... please be patient" ).toConsole();
+					print.line()
+					     .yellowLine( "Downloading Preside from [#presideLocation#]... please be patient" ).toConsole();
 					http getasBinary=true file=presideZip url=presideLocation throwOnError=true;
 				} catch ( any e ) {
 					validVersion = false;
@@ -127,7 +135,7 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 				}
 			}
 			
-			print.yellowLine( "Download complete. Installing to [#arguments.webConfigDir#]/preside..." ).toConsole();
+			print.yellowLine( "Download complete. Installing to [#arguments.webConfigDir#/preside]..." ).toConsole();
 			
 			zip action="unzip" file="#presideZip#" destination=arguments.webConfigDir;
 
@@ -137,4 +145,33 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 		return presideLocation;
 	}
 
+	private string function _setupDatasource() output=false {
+		print.line().toConsole();
+		print.yellowLine( "PresideCMS datasource setup (MySQL Only)" ).toConsole();
+		print.yellowLine( "========================================" ).toConsole();
+		print.line().toConsole();
+		
+		if ( shell.ask( "Setup MySQL datasource now [Y/n]? " ) == "n" ) {
+			return "";
+		}
+
+		print.line().toConsole();
+		print.yellowLine( "If you have not done so already, please create your database and have credentials ready." ).toConsole();
+		print.line().toConsole();
+
+		var db    = shell.ask( "Database name: " );
+		var usr   = shell.ask( "Username: " );
+		var pass  = shell.ask( "Password: " );
+		var host  = shell.ask( "Host (localhost): " );
+		var port  = shell.ask( "Port (3306): " );
+		while( Len( Trim( port ) ) && !IsNumeric( port ) ) {
+			print.redLine( "Invalid port number!" ).toConsole();
+			port = shell.ask( "Port (3306): " );
+		}
+
+		if( !Len( Trim( host ) ) ) { host = "localhost"; }
+		if( !Len( Trim( port ) ) ) { port = "3306"; }
+		
+		return '<data-source allow="511" blob="false" class="org.gjt.mm.mysql.Driver" clob="true" connectionLimit="-1" connectionTimeout="1" custom="useUnicode=true&amp;characterEncoding=UTF-8" database="#db#" dsn="jdbc:mysql://{host}:{port}/{database}" host="#host#" metaCacheTimeout="60000" name="preside" password="#pass#" port="#port#" storage="false" username="#usr#" validate="false"/>';
+	}
 }
