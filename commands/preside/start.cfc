@@ -4,6 +4,7 @@
 component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 
 	property name="serverService" inject="ServerService";
+	property name="serverHomeDirectory" inject="HomeDir";
 	
 	/**
 	 * @port.hint port number
@@ -54,7 +55,7 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 	 * 
 	 */
 	private void function _prepareDirectories( required struct serverInfo ) output=true {
-		serverInfo.serverConfigDir = shell.getHomeDir() & "/server";
+		serverInfo.serverConfigDir = serverHomeDirectory & "/server";
 
 		var webDir            = serverInfo.serverConfigDir & "/custom/" & serverInfo.name;
 		var presideServerDir  = webDir & "/preside";
