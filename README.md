@@ -14,12 +14,12 @@ Before starting, you will need CommandBox installed. Head to https://github.com/
 Once you have CommandBox up and running, you'll need to issue the following commands:
 
     CommandBox> cd (pathtouserdirectory)/.CommandBox/cfml
-    CommandBox> forgebox install Preside-CMS-CommandBox-Commands
+    CommandBox> forgebox install PresideCMS-Commands
     CommandBox> reload
     
 ### Method 2, manual install
 
-1. Either download and extract the commands from [Foregebox](http://www.coldbox.org/forgebox/view/PresideCMS-Commands) or clone this repository
+1. Either download and extract the commands from [Forgebox](http://www.coldbox.org/forgebox/view/PresideCMS-Commands) or clone this repository
 2. Copy the commands/preside folder into your `(pathtouserdirectory)/.CommandBox/cfml/commands` folder
 
 ## Usage
