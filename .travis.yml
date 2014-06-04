@@ -19,7 +19,7 @@ deploy:
   secret_access_key:
     secure: dJ2FDriqa6KX/rxbJZuAAK071rbTR48/jLhnnwY4UX/Gx4xEk46nRtoMfXDGC3BSESkOYsXKWoGbF6dx+XKRbftIfcue6Fihb8mHbK0TQn/pSPHk+McDZhDbS51r6ssnerc1Von8UbXGBhpPpC9mFP2v225XaaLozIZu3Y/R0Uw=
   bucket: downloads.presidecms.com
-  local-dir: support/build/artifacts
+  local-dir: build/artifacts
   skip_cleanup: true
   on:
     repo: pixl8/Preside-CMS-CommandBox-Commands
