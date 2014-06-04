@@ -1,0 +1,26 @@
+language: java
+
+env:
+  global:
+  - ARTIFACTS_S3_BUCKET=downloads.presidecms.com
+
+script: ant -f build/build.xml -Dwork.dir=$HOME/work -Dbuild.dir=$TRAVIS_BUILD_DIR -Dbranch=$TRAVIS_BRANCH -Dtag=$TRAVIS_TAG build
+
+notifications:
+  email: false
+  hipchat:
+    format: html
+    rooms:
+      secure: PlMJaz9eZ9wFIxhpIdxy0NWMGKda1RTSVeO9Z13f90x+qOW+IKN9Kc0Bu5Eh3HKygaM5SmEByhs0p+4Vkalz6+VXY5EBGkl6+lI6Yq60CTcS95LUquloY7zDNRlinT3J+aNTyOad7VMigq62m6qJwz0rKEVcf7gpjctNoBJVvZk=
+
+deploy:
+  provider: s3
+  access_key_id: AKIAJ3PTU73IHOOZV3LQ
+  secret_access_key:
+    secure: dJ2FDriqa6KX/rxbJZuAAK071rbTR48/jLhnnwY4UX/Gx4xEk46nRtoMfXDGC3BSESkOYsXKWoGbF6dx+XKRbftIfcue6Fihb8mHbK0TQn/pSPHk+McDZhDbS51r6ssnerc1Von8UbXGBhpPpC9mFP2v225XaaLozIZu3Y/R0Uw=
+  bucket: downloads.presidecms.com
+  local-dir: support/build/artifacts
+  skip_cleanup: true
+  on:
+    repo: pixl8/Preside-CMS-CommandBox-Commands
+    all_branches: true
