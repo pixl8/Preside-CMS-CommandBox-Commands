@@ -16,6 +16,8 @@ Once you have CommandBox up and running, you'll need to issue the following comm
     CommandBox> cd (pathtouserdirectory)/.CommandBox/cfml
     CommandBox> forgebox install PresideCMS-Commands
     CommandBox> reload
+
+Make sure you have the latest commandbox build and that the reload command causes the preside namespace to appear when you type help
     
 ### Method 2, manual install
 
