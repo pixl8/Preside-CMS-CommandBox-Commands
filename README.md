@@ -46,5 +46,5 @@ If it is the first time starting, you will be prompted to download Preside and a
 
 Once started, a browser should open and you should be presented with your homepage. To navigate to the administrator, browse to `/{site_id}_admin/`, where site id is the ID of the site you entered when creating the new site from the instructions above.
 
-**.n.b.** The admin path setting is editable in your site's `/application/config/Config.cfc` file.
+**n.b.** The admin path setting is editable in your site's `/application/config/Config.cfc` file.
 
