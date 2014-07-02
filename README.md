@@ -40,8 +40,6 @@ Follow any prompts that you receive.
 
 From the webroot of your Preside site, enter the following command:
 
-From within the CommandBox shell, CD into an empty directory in which you would like to create the new site and type:
-
     CommandBox> preside start
     
 If it is the first time starting, you will be prompted to download Preside and also to enter your database information, you will need an empty database already setup.
