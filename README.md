@@ -7,7 +7,7 @@ CommandBox commands for PresideCMS. This repository manages the code used to bui
 
 ## Installation
 
-Before starting, you will need CommandBox installed. Head to https://github.com/Ortus-Solutions/box-cli for instructions on how to do so.
+Before starting, you will need CommandBox installed. Head to http://www.ortussolutions.com/products/commandbox for instructions on how to do so.
 
 ### Method 1, through the ForgeBox command
 
