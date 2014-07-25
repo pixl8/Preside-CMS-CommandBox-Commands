@@ -4,7 +4,7 @@
 component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 
 	property name="serverService" inject="ServerService";
-	property name="serverHomeDirectory" inject="HomeDir";
+	property name="serverHomeDirectory" inject="HomeDir@constants";
 	
 	/**
 	 * @port.hint port number
