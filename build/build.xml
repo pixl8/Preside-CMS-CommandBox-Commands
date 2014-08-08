@@ -5,6 +5,7 @@
 	<property file="build.properties" />
 	<property name="artifacts.dir" value="./artifacts" />
 	<property name="build.number.file" value="${artifacts.dir}/build.number" />
+	<property name="download.dir" value="./downloads"/>
 
 	<path id="cp">
 		<fileset dir="lib">
@@ -13,7 +14,7 @@
 	</path>
 	<taskdef resource="net/sf/antcontrib/antlib.xml" classpathref="cp" />
 
-	<target name="build" depends="setupartifactsdir,setupreleaselabel">
+	<target name="build" depends="install-deps,setupartifactsdir,setupreleaselabel">
 		<concat destfile="../commands/preside/${build.label}">Built on ${start.TODAY}</concat>
 		<copy file="../COPYRIGHT.txt" tofile="../commands/preside/COPYRIGHT.txt" />
 		<copy file="../LICENSE.txt" tofile="../commands/preside/LICENSE.txt" />
@@ -24,6 +25,19 @@
 		</zip>
 
 		<delete file="../../${build.label}" failonerror="false" />
+	</target>
+
+	<target name="install-deps">
+		<mkdir dir="${download.dir}" />
+		<if>
+			<available file="${download.dir}/${sticker.tmp.file}" />
+			<then></then>
+			<else>
+				<get src="${skeleton.remote.url}" dest="${download.dir}/${skeleton.tmp.file}" />
+			</else>
+		</if>
+		<unzip src="${download.dir}/${skeleton.tmp.file}" dest="${download.dir}" />
+		<zip destfile="${skeleton.zip.install.path}" basedir="${download.dir}/${skeleton.zip.subdir}" />
 	</target>
 
 	<target name="setupartifactsdir">
