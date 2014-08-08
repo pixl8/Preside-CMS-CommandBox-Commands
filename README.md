@@ -9,21 +9,13 @@ CommandBox commands for PresideCMS. This repository manages the code used to bui
 
 Before starting, you will need CommandBox installed. Head to http://www.ortussolutions.com/products/commandbox for instructions on how to do so.
 
-### Method 1, through the ForgeBox command
-
 Once you have CommandBox up and running, you'll need to issue the following commands:
 
-    CommandBox> cd (pathtouserdirectory)/.CommandBox/cfml
     CommandBox> forgebox install PresideCMS-Commands
     CommandBox> reload
 
 Make sure you have the latest commandbox build and that the reload command causes the preside namespace to appear when you type help
     
-### Method 2, manual install
-
-1. Either download and extract the commands from [Forgebox](http://www.coldbox.org/forgebox/view/PresideCMS-Commands) or clone this repository
-2. Copy the commands/preside folder into your `(pathtouserdirectory)/.CommandBox/cfml/commands` folder
-
 ## Usage
 
 ### Create a new site
