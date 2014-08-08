@@ -15,13 +15,13 @@
 	<taskdef resource="net/sf/antcontrib/antlib.xml" classpathref="cp" />
 
 	<target name="build" depends="install-deps,setupartifactsdir,setupreleaselabel">
-		<concat destfile="../commands/preside/${build.label}">Built on ${start.TODAY}</concat>
-		<copy file="../COPYRIGHT.txt" tofile="../commands/preside/COPYRIGHT.txt" />
-		<copy file="../LICENSE.txt" tofile="../commands/preside/LICENSE.txt" />
-		<copy file="../README.md" tofile="../commands/preside/README.md" />
+		<concat destfile="../preside/${build.label}">Built on ${start.TODAY}</concat>
+		<copy file="../COPYRIGHT.txt" tofile="../preside/COPYRIGHT.txt" />
+		<copy file="../LICENSE.txt" tofile="../preside/LICENSE.txt" />
+		<copy file="../README.md" tofile="../preside/README.md" />
 
 		<zip destfile="${artifacts.dir}/${release.name}/PresideCMSCommandBoxCommands-${commands.version}.zip">
-			<zipfileset dir="../commands" prefix="commands" />
+			<zipfileset dir="../preside" prefix="preside" />
 		</zip>
 
 		<delete file="../../${build.label}" failonerror="false" />
