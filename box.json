@@ -1,0 +1,22 @@
+{
+    "name":"PresideCMS Commandbox Commands",
+    "version":"0.1.0.0000",
+    "author":"Pixl8 Interactive",
+    "location":"",
+    "directory":"",
+    "homepage":"https://github.com/pixl8/Preside-CMS-CommandBox-Commands",
+    "documentation":"https://github.com/pixl8/Preside-CMS-CommandBox-Commands",
+    "repository":{
+        "type":"git",
+        "url":"https://github.com/pixl8/Preside-CMS-CommandBox-Commands"
+    },
+    "bugs":"https://github.com/pixl8/Preside-CMS-CommandBox-Commands/issues",
+    "slug":"Preside-CMS-CommandBox-Commands",
+    "private":false,
+    "engines":[
+        {
+            "type":"railo",
+            "version":">=4.2.x"
+        }
+    ]
+}
