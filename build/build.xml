@@ -21,7 +21,7 @@
 		<copy file="../README.md" tofile="../preside/README.md" />
 
 		<zip destfile="${artifacts.dir}/${release.name}/PresideCMSCommandBoxCommands-${commands.version}.zip">
-			<zipfileset dir="../preside" prefix="preside" />
+			<zipfileset dir="../preside" prefix="" />
 		</zip>
 
 		<delete file="../../${build.label}" failonerror="false" />
