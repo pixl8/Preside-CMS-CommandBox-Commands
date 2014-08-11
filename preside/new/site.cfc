@@ -1,5 +1,5 @@
 /**
- * Scaffold a new PresideCMS site, e.g. 
+ * Scaffold a new PresideCMS site, e.g.
  * > preside new site "my-site"
  **/
 component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
@@ -74,11 +74,14 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 	private void function _addGitIgnoreFile( required string directory ) output=false {
 		var nl            = Chr(13) & Chr(10);
 
-		FileWrite( directory & "/.gitignore", 
+		FileWrite( directory & "/.gitignore",
 			"/WEB-INF" & nl &
-			"/_assets" & nl &
 			"/uploads" & nl &
-			"/application/config/LocalConfig.cfc"
+			"/application/config/LocalConfig.cfc" & nl &
+			"/application/config/.injectedConfiguration" & nl &
+			"/extensions" & nl &
+			"!/extensions/README.md" & nl &
+			"!/extensions/extensions.json"
 		);
 	}
 }
