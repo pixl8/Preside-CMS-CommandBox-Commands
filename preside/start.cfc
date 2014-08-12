@@ -5,7 +5,7 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 
 	property name="serverService" inject="ServerService";
 	property name="serverHomeDirectory" inject="HomeDir@constants";
-	
+
 	/**
 	 * @port.hint port number
 	 * @openbrowser.hint open a browser after starting
@@ -15,7 +15,7 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 	 * @force.hint force start if status is not stopped
 	 * @debug.hint sets debug log level
 	 **/
-	function run( 
+	function run(
 		Numeric port=0,
 		Boolean openbrowser=true,
 		String directory="",
@@ -28,7 +28,7 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 		var webroot = arguments.directory is "" ? shell.pwd() : arguments.directory;
 		var name 	= arguments.name is "" ? listLast( webroot, "\/" ) : arguments.name;
 		webroot = fileSystemUtil.resolvePath( webroot );
-		
+
 		// get server info record, create one if this is the first time.
 		var serverInfo = serverService.getServerInfo( webroot );
 		// we don't want to changes the ports if we're doing stuff already
@@ -52,7 +52,7 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 
 	/**
 	 * Private method to setup the web config directories with Preside specific configuration
-	 * 
+	 *
 	 */
 	private void function _prepareDirectories( required struct serverInfo ) output=true {
 		serverInfo.serverConfigDir = serverHomeDirectory & "/server";
@@ -60,7 +60,7 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 		var webDir            = serverInfo.serverConfigDir & "/custom/" & serverInfo.name;
 		var presideServerDir  = webDir & "/preside";
 		var resourceDir       = GetDirectoryFromPath( GetCurrentTemplatePath() ) & "/_resources";
-		
+
 		serverInfo.webConfigDir    = webDir & "/web";
 
 		if ( !DirectoryExists( webDir ) ) {
@@ -117,14 +117,14 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 
 			while ( !validVersion ) {
 				validVersion = true;
-				
+
 				print.line().toConsole();
-				presideVersion  = shell.ask( "Which version of preside do you wish to install? (0.1.0) " );
+				presideVersion  = shell.ask( "Which version of preside do you wish to install? (0.1.1) " );
 				if ( !Len( Trim( presideVersion ) ) ) {
-					presideVersion = "0.1.0";
+					presideVersion = "0.1.1";
 				}
-				presideLocation = "http://downloads.presidecms.com/bleeding-edge/PresideCMS-#presideVersion#.zip"; // in future this would be handled MUCH better!
-				
+				presideLocation = "http://downloads.presidecms.com/presidecms/bleeding-edge/PresideCMS-#presideVersion#.zip"; // in future this would be handled MUCH better!
+
 				var presideZip = GetTempDirectory() & "/PresideCMS-#presideVersion#.zip";
 				try {
 					print.line()
@@ -135,12 +135,21 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 					print.redLine( "Invalid preside version [#presideVersion#]. No download found at [#presideLocation#]." ).toConsole();
 				}
 			}
-			
-			print.yellowLine( "Download complete. Installing to [#arguments.webConfigDir#/preside]..." ).toConsole();
-			
-			zip action="unzip" file="#presideZip#" destination=arguments.webConfigDir;
 
-			presideLocation = "{railo-web}/preside";
+			print.yellowLine( "Download complete. Installing to [#arguments.webConfigDir#/preside]..." ).toConsole();
+
+			zip action="unzip" file="#presideZip#" destination=arguments.webConfigDir & "/preside";
+
+			var subDirs = DirectoryList( arguments.webConfigDir & "/preside", false, "query" );
+			var versionDir  = "";
+			for( var subDir in subDirs ){
+				if ( subDir.type == "Dir" && ReFindNoCase( "^presidecms-[0-9\.]+$", subDir.name ) ) {
+					versionDir = "/#subDir.name#";
+					break;
+				}
+			}
+
+			presideLocation = "{railo-web}/preside#versionDir#";
 		}
 
 		return presideLocation;
@@ -151,7 +160,7 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 		print.yellowLine( "PresideCMS datasource setup (MySQL Only)" ).toConsole();
 		print.yellowLine( "========================================" ).toConsole();
 		print.line().toConsole();
-		
+
 		if ( shell.ask( "Setup MySQL datasource now [Y/n]? " ) == "n" ) {
 			return "";
 		}
@@ -172,7 +181,7 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 
 		if( !Len( Trim( host ) ) ) { host = "localhost"; }
 		if( !Len( Trim( port ) ) ) { port = "3306"; }
-		
+
 		return '<data-source allow="511" blob="false" class="org.gjt.mm.mysql.Driver" clob="true" connectionLimit="-1" connectionTimeout="1" custom="useUnicode=true&amp;characterEncoding=UTF-8" database="#db#" dsn="jdbc:mysql://{host}:{port}/{database}" host="#host#" metaCacheTimeout="60000" name="preside" password="#pass#" port="#port#" storage="false" username="#usr#" validate="false"/>';
 	}
 }
