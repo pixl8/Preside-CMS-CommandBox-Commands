@@ -119,9 +119,9 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 				validVersion = true;
 
 				print.line().toConsole();
-				presideVersion  = shell.ask( "Which version of preside do you wish to install? (0.1.1) " );
+				presideVersion  = shell.ask( "Which version of preside do you wish to install? (0.1.2) " );
 				if ( !Len( Trim( presideVersion ) ) ) {
-					presideVersion = "0.1.1";
+					presideVersion = "0.1.2";
 				}
 				presideLocation = "http://downloads.presidecms.com/presidecms/bleeding-edge/PresideCMS-#presideVersion#.zip"; // in future this would be handled MUCH better!
 
