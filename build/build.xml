@@ -15,19 +15,19 @@
 	<taskdef resource="net/sf/antcontrib/antlib.xml" classpathref="cp" />
 
 	<target name="build" depends="install-deps,setupartifactsdir,setupreleaselabel">
-		<concat destfile="../src/${build.label}">Built on ${start.TODAY}</concat>
-		<copy file="../COPYRIGHT.txt" tofile="../src/COPYRIGHT.txt" />
-		<copy file="../LICENSE.txt" tofile="../src/LICENSE.txt" />
-		<copy file="../README.md" tofile="../src/README.md" />
+		<concat destfile="../src/preside/${build.label}">Built on ${start.TODAY}</concat>
+		<copy file="../COPYRIGHT.txt" tofile="../src/preside/COPYRIGHT.txt" />
+		<copy file="../LICENSE.txt" tofile="../src/preside/LICENSE.txt" />
+		<copy file="../README.md" tofile="../src/preside/README.md" />
 
 		<zip destfile="${artifacts.dir}/${release.name}/PresideCMSCommandBoxCommands-${commands.version}.zip">
 			<zipfileset dir="../src" prefix="" />
 		</zip>
 
-		<delete file="../src/${build.label}" failonerror="false" />
-		<delete file="../src/COPYRIGHT.txt" failonerror="false" />
-		<delete file="../src/LICENSE.txt" failonerror="false" />
-		<delete file="../src/README.md" failonerror="false" />
+		<delete file="../src/preside/${build.label}" failonerror="false" />
+		<delete file="../src/preside/COPYRIGHT.txt" failonerror="false" />
+		<delete file="../src/preside/LICENSE.txt" failonerror="false" />
+		<delete file="../src/preside/README.md" failonerror="false" />
 	</target>
 
 	<target name="install-deps">
