@@ -77,6 +77,7 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 		FileWrite( directory & "/.gitignore",
 			"/WEB-INF" & nl &
 			"/uploads" & nl &
+			"/logs" & nl &
 			"/application/config/LocalConfig.cfc" & nl &
 			"/application/config/.injectedConfiguration" & nl &
 			"/extensions" & nl &
