@@ -56,6 +56,8 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 	 */
 	private void function _prepareDirectories( required struct serverInfo ) output=true {
 		serverInfo.serverConfigDir = serverHomeDirectory & "/server";
+		serverInfo.engineConfigDir = serverHomeDirectory & "/engine/railo";
+
 
 		var webDir            = serverInfo.serverConfigDir & "/custom/" & serverInfo.name;
 		var presideServerDir  = webDir & "/preside";
@@ -68,8 +70,13 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 			DirectoryCreate( webDir );
 		}
 		if ( !DirectoryExists( serverInfo.webConfigDir ) ) {
-			DirectoryCopy( serverInfo.serverConfigDir & "/railo-web", serverInfo.webConfigDir, true );
-
+			
+			if (directoryExists(serverInfo.engineConfigDir & "/railo-web")){
+				DirectoryCopy( serverInfo.engineConfigDir & "/railo-web", serverInfo.webConfigDir, true );
+			}else{
+				//We must be on an older CommandBox Build
+				DirectoryCopy( serverInfo.serverConfigDir & "/railo-web", serverInfo.webConfigDir, true );
+			}
 			var presideLocation = _setupPresideLocation( serverInfo.webConfigDir );
 			var datasource      = _setupDatasource();
 
