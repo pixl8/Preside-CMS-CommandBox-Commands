@@ -56,7 +56,7 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 	 */
 	private void function _prepareDirectories( required struct serverInfo ) output=true {
 		serverInfo.serverConfigDir = serverHomeDirectory & "/server";
-		serverInfo.engineConfigDir = serverHomeDirectory & "/engine/railo";
+		serverInfo.engineConfigDir = serverHomeDirectory & "/engine/railo/cli";
 
 
 		var webDir            = serverInfo.serverConfigDir & "/custom/" & serverInfo.name;
