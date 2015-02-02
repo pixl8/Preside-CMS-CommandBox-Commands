@@ -40,24 +40,22 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 		serverInfo.webroot 	= webroot;
 		serverInfo.debug 	= arguments.debug;
 
-		_prepareDirectories( serverInfo );
-
-		// startup the service using server info struct
-		print.line();
-		print.greenLine("***********************************************************************************************************************************");
-		print.greenLine( serverService.start( serverInfo, arguments.openbrowser, arguments.force, arguments.debug ) );
-		print.greenLine("***********************************************************************************************************************************");
-		print.line();
+		if ( _prepareDirectories( serverInfo ) ) {
+			// startup the service using server info struct
+			print.line();
+			print.greenLine("***********************************************************************************************************************************");
+			print.greenLine( serverService.start( serverInfo, arguments.openbrowser, arguments.force, arguments.debug ) );
+			print.greenLine("***********************************************************************************************************************************");
+			print.line();
+		}
 	}
 
 	/**
 	 * Private method to setup the web config directories with Preside specific configuration
 	 *
 	 */
-	private void function _prepareDirectories( required struct serverInfo ) output=true {
-		serverInfo.serverConfigDir = serverHomeDirectory & "/server";
-		serverInfo.engineConfigDir = serverHomeDirectory & "/engine/railo/cli";
-
+	private boolean function _prepareDirectories( required struct serverInfo ) output=true {
+		serverInfo.serverConfigDir = serverHomeDirectory & "/engine/cfml/cli";
 
 		var webDir            = serverInfo.serverConfigDir & "/custom/" & serverInfo.name;
 		var presideServerDir  = webDir & "/preside";
@@ -70,13 +68,18 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 			DirectoryCreate( webDir );
 		}
 		if ( !DirectoryExists( serverInfo.webConfigDir ) ) {
-			
-			if (directoryExists(serverInfo.engineConfigDir & "/railo-web")){
-				DirectoryCopy( serverInfo.engineConfigDir & "/railo-web", serverInfo.webConfigDir, true );
-			}else{
-				//We must be on an older CommandBox Build
-				DirectoryCopy( serverInfo.serverConfigDir & "/railo-web", serverInfo.webConfigDir, true );
+			if ( !DirectoryExists( serverInfo.serverConfigDir & "/cfml-web" ) ) {
+				print.line();
+				print.redLine("*************************************************************************************************************************************************************************");
+				print.redLine("Could not find server files. Please ensure you have the latest version of CommandBox. Expected to find files at [#serverInfo.serverConfigDir#/cfml-web]");
+				print.redLine("*************************************************************************************************************************************************************************");
+				print.line();
+
+				return false;
 			}
+
+			DirectoryCopy( serverInfo.serverConfigDir & "/cfml-web", serverInfo.webConfigDir, true );
+
 			var presideLocation = _setupPresideLocation( serverInfo.webConfigDir );
 			var datasource      = _setupDatasource();
 
@@ -98,6 +101,8 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 		serverInfo.libDirs  = presideServerDir  & "/lib";
 		serverInfo.webXml   = presideServerDir  & "/web.xml";
 		serverInfo.trayIcon = resourceDir & "/trayicon.png";
+
+		return true;
 	}
 
 	private string function _setupPresideLocation( required string webConfigDir ) output=false {
