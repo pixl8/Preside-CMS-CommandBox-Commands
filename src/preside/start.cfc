@@ -87,6 +87,7 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 			railoWebXml = ReplaceNoCase( railoWebXml, "${presideLocation}", presideLocation );
 			railoWebXml = ReplaceNoCase( railoWebXml, "${datasource}", datasource );
 			FileWrite( serverInfo.webConfigDir & "/railo-web.xml.cfm", railoWebXml );
+			FileWrite( serverInfo.webConfigDir & "/lucee-web.xml.cfm", railoWebXml );
 		}
 
 		if ( !DirectoryExists( presideServerDir ) ) {
