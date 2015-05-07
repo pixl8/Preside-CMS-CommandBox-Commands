@@ -101,7 +101,14 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 
 		serverInfo.libDirs  = presideServerDir  & "/lib";
 		serverInfo.webXml   = presideServerDir  & "/web.xml";
-		serverInfo.trayIcon = resourceDir & "/trayicon.png";
+
+		var osInfo = CreateObject("java", "java.lang.System").getProperties();
+		if (findNoCase( "Mac OS", osInfo['os.name'] )) {
+			serverInfo.trayIcon = resourceDir & "/trayicon_hires.png";
+		}
+		else {
+			serverInfo.trayIcon = resourceDir & "/trayicon.png";
+		}
 
 		return true;
 	}
