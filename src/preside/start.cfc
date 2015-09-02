@@ -16,13 +16,14 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 	 * @debug.hint sets debug log level
 	 **/
 	function run(
-		Numeric port=0,
-		Boolean openbrowser=true,
-		String directory="",
-		String name="",
-		Numeric stopPort=0,
-		Boolean force=false,
-		Boolean debug=false
+		  Numeric port        = 0
+		, Boolean openbrowser = true
+		, String  directory   = ""
+		, String  name        = ""
+		, Numeric stopPort    = 0
+		, Boolean force       = false
+		, Boolean debug       = false
+		, Numeric heapSize    = 1024
 	){
 		// prepare webroot and short name
 		var webroot = arguments.directory is "" ? shell.pwd() : arguments.directory;
@@ -39,6 +40,7 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 		}
 		serverInfo.webroot 	= webroot;
 		serverInfo.debug 	= arguments.debug;
+		serverInfo.heapSize = arguments.heapSize;
 
 		if ( _prepareDirectories( serverInfo ) ) {
 			// startup the service using server info struct
