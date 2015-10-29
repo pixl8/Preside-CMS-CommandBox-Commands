@@ -145,7 +145,7 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 				if ( !Len( Trim( presideVersion ) ) ) {
 					presideVersion = "10.2.1";
 				}
-				presideLocation = "http://downloads.presidecms.com/presidecms/stable/PresideCMS-#presideVersion#.zip"; // in future this would be handled MUCH better!
+				presideLocation = "http://downloads.presidecms.com/presidecms/release/PresideCMS-#presideVersion#.zip"; // in future this would be handled MUCH better!
 
 				var presideZip = GetTempDirectory() & "/PresideCMS-#presideVersion#.zip";
 				try {
