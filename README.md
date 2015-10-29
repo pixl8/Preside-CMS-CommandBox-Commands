@@ -14,7 +14,7 @@ Once you have CommandBox up and running, you'll need to issue the following comm
     CommandBox> install preside-commands
     CommandBox> reload
 
-Make sure you have the latest commandbox build and that the reload command causes the preside namespace to appear when you type help
+Make sure you have the latest commandbox build and that the reload command causes the preside namespace to appear when you type help.
     
 ## Usage
 
