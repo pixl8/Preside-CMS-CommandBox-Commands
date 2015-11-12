@@ -1,4 +1,4 @@
 /build/artifacts
 /build/downloads
-/src/_resources/preside-site-skeleton.zip
-/src/PresideCMSCommandBoxCommands-*
+/src/preside/_resources/preside-site-skeleton.zip
+/src/preside/PresideCMSCommandBoxCommands-*
