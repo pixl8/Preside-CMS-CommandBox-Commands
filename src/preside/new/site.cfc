@@ -63,12 +63,16 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 
 	private void function _replacePlaceholdersWithArgs( required string siteId, required string adminPath, required string directory ) output=false {
 		var configCfcPath = arguments.directory & "/application/config/Config.cfc";
+		var appCfcPath    = arguments.directory & "/Application.cfc";
 		var config        = FileRead( configCfcPath );
+		var appcfc        = FileRead( appCfcPath    );
 
-		config = ReplaceNoCase( config, "${site_id}"   , arguments.siteId );
-		config = ReplaceNoCase( config, "${admin_path}", arguments.adminPath );
+		config = ReplaceNoCase( config, "${site_id}"   , arguments.siteId   , "all" );
+		config = ReplaceNoCase( config, "${admin_path}", arguments.adminPath, "all" );
+		appcfc = ReplaceNoCase( appcfc, "${site_id}"   , arguments.siteId   , "all" );
 
 		FileWrite( configCfcPath, config );
+		FileWrite( appCfcPath   , appcfc );
 	}
 
 	private void function _addGitIgnoreFile( required string directory ) output=false {
