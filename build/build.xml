@@ -16,6 +16,7 @@
 
 	<target name="build" depends="install-deps,setupartifactsdir,setupreleaselabel">
 		<concat destfile="../src/preside/${build.label}">Built on ${start.TODAY}</concat>
+		<copy file="../box.json" tofile="../src/box.json" />
 		<copy file="../COPYRIGHT.txt" tofile="../src/preside/COPYRIGHT.txt" />
 		<copy file="../LICENSE.txt" tofile="../src/preside/LICENSE.txt" />
 		<copy file="../README.md" tofile="../src/preside/README.md" />
@@ -24,6 +25,7 @@
 			<zipfileset dir="../src" prefix="" />
 		</zip>
 
+		<delete file="../src/box.json" failonerror="false" />
 		<delete file="../src/preside/${build.label}" failonerror="false" />
 		<delete file="../src/preside/COPYRIGHT.txt" failonerror="false" />
 		<delete file="../src/preside/LICENSE.txt" failonerror="false" />
