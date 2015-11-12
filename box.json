@@ -1,0 +1,17 @@
+{
+    "name":"PresideCMS CommandBox Commands",
+    "version":"0.2.7",
+    "author":"Pixl8 Interactive",
+    "createPackageDirectory":true,
+    "packageDirectory":"",
+    "homepage":"https://github.com/pixl8/Preside-CMS-CommandBox-Commands",
+    "repository":{
+        "type":"git",
+        "URL":"https://github.com/pixl8/Preside-CMS-CommandBox-Commands"
+    },
+    "slug":"preside-commands",
+    "shortDescription":"Commands to help with PresideCMS development.",
+    "keywords":"CMS,Commands",
+    "private":false,
+    "projectURL":"https://github.com/pixl8/Preside-CMS-CommandBox-Commands"
+}
