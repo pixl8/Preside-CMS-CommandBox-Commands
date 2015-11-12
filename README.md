@@ -9,12 +9,13 @@ CommandBox commands for PresideCMS. This repository manages the code used to bui
 
 Before starting, you will need CommandBox installed. Head to http://www.ortussolutions.com/products/commandbox for instructions on how to do so.
 
-Once you have CommandBox up and running, you'll need to issue the following commands:
+Once you have CommandBox installed, you can install our commands with:
 
-    CommandBox> install preside-commands
-    CommandBox> reload
+    ~/> box install preside-commands
 
-Make sure you have the latest commandbox build and that the reload command causes the preside namespace to appear when you type help.
+If you already have the commands installed, and wish to ensure you have the latest version installed, enter the following command at your command prompt:
+
+	~/> box install --force preside-commands
     
 ## Usage
 
