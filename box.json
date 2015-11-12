@@ -3,7 +3,7 @@
     "version":"0.2.7",
     "author":"Pixl8 Interactive",
     "createPackageDirectory":true,
-    "packageDirectory":"",
+    "packageDirectory":"preside",
     "homepage":"https://github.com/pixl8/Preside-CMS-CommandBox-Commands",
     "repository":{
         "type":"git",
