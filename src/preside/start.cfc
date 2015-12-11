@@ -35,8 +35,12 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 		// we don't want to changes the ports if we're doing stuff already
 		if( serverInfo.status is "stopped" || arguments.force ){
 			serverInfo.name = name;
-			serverInfo.port = arguments.port;
-			serverInfo.stopsocket = arguments.stopPort;
+			if( arguments.port != 0 ){
+				serverInfo.port = arguments.port;
+			}
+			if( arguments.stopPort != 0 ){
+				serverInfo.stopsocket = arguments.stopPort;
+			}
 		}
 		serverInfo.webroot 	= webroot;
 		serverInfo.debug 	= arguments.debug;
