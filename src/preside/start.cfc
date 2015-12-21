@@ -145,9 +145,9 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 				validVersion = true;
 
 				print.line().toConsole();
-				presideVersion  = shell.ask( "Which version of preside do you wish to install? (10.4.0) " );
+				presideVersion  = shell.ask( "Which version of preside do you wish to install? (10.4.1) " );
 				if ( !Len( Trim( presideVersion ) ) ) {
-					presideVersion = "10.4.0";
+					presideVersion = "10.4.1";
 				}
 				presideLocation = "http://downloads.presidecms.com/presidecms/release/PresideCMS-#presideVersion#.zip"; // in future this would be handled MUCH better!
 
