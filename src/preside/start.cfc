@@ -3,8 +3,8 @@
  **/
 component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 
-	property name="serverService" inject="ServerService";
-	property name="serverHomeDirectory" inject="HomeDir@constants";
+	property name="serverService"           inject="ServerService";
+	property name="commandboxHomeDirectory" inject="HomeDir@constants";
 
 	/**
 	 * @port.hint port number
@@ -16,84 +16,77 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 	 * @debug.hint sets debug log level
 	 **/
 	function run(
-		  Numeric port        = 0
-		, Boolean openbrowser = true
-		, String  directory   = ""
-		, String  name        = ""
-		, Numeric stopPort    = 0
-		, Boolean force       = false
-		, Boolean debug       = false
-		, Numeric heapSize    = 1024
+		  String  directory = ""
+		, Numeric heapSize  = 1024
+		, Numeric port
+		, Boolean openbrowser
+		, String  name
+		, Numeric stopPort
+		, Boolean force
+		, Boolean debug
 	){
-		// prepare webroot and short name
-		var webroot = arguments.directory is "" ? shell.pwd() : arguments.directory;
-		var name 	= arguments.name is "" ? listLast( webroot, "\/" ) : arguments.name;
-		webroot = fileSystemUtil.resolvePath( webroot );
+		var serverProps = arguments;
 
-		// get server info record, create one if this is the first time.
-		var serverInfo = serverService.getServerInfo( webroot );
-		// we don't want to changes the ports if we're doing stuff already
-		if( serverInfo.status is "stopped" || arguments.force ){
-			serverInfo.name = name;
-			if( arguments.port != 0 ){
-				serverInfo.port = arguments.port;
-			}
-			if( arguments.stopPort != 0 ){
-				serverInfo.stopsocket = arguments.stopPort;
-			}
-		}
-		serverInfo.webroot 	= webroot;
-		serverInfo.debug 	= arguments.debug;
-		serverInfo.heapSize = arguments.heapSize;
+		serverProps.directory = fileSystemUtil.resolvePath( arguments.directory );
+		serverProps.name      = serverProps.name is "" ? listLast( serverProps.directory, "\/" ) : serverProps.name;
 
-		if ( _prepareDirectories( serverInfo ) ) {
+		var preparedDirectoryProps = _prepareDirectories( argumentCollection=serverProps );
+		if ( preparedDirectoryProps.count() ) {
+			serverProps.append( preparedDirectoryProps );
+
 			// startup the service using server info struct
 			print.line();
 			print.greenLine("***********************************************************************************************************************************");
-			print.greenLine( serverService.start( serverInfo, arguments.openbrowser, arguments.force, arguments.debug ) );
+			print.greenLine( serverService.start( serverProps=serverProps ) );
 			print.greenLine("***********************************************************************************************************************************");
 			print.line();
 		}
+
+		// horrid workaround for a bug with threaded running of
+		// serverService.start() + box shell exiting before that
+		// command is finished
+		sleep( 2000 );
 	}
 
 	/**
 	 * Private method to setup the web config directories with Preside specific configuration
 	 *
 	 */
-	private boolean function _prepareDirectories( required struct serverInfo ) output=true {
-		serverInfo.serverConfigDir = serverHomeDirectory & "/engine/cfml/cli";
+	private struct function _prepareDirectories( required string name, required string directory ) {
+		var serverInfo  = serverService.getServerInfo( arguments.directory );
 
-		var webDir            = serverInfo.serverConfigDir & "/custom/" & serverInfo.name;
-		var presideServerDir  = webDir & "/preside";
+		serverInfo.append( arguments );
+		serverInfo.serverConfigDir = Len( Trim( serverInfo.serverConfigDir ) ) ? serverInfo.serverConfigDir : ( commandBoxHomeDirectory & "/engine/cfml/server" );
+		serverInfo.webConfigDir    = Len( Trim( serverInfo.webConfigDir    ) ) ? serverInfo.webConfigDir    : ( commandBoxHomeDirectory & "/server/#serverInfo.id#-#serverInfo.name#" );
+
+		var presideServerDir  = serverInfo.webConfigDir & "/preside";
 		var resourceDir       = GetDirectoryFromPath( GetCurrentTemplatePath() ) & "/_resources";
 
-		serverInfo.webConfigDir    = webDir & "/web";
-
-		if ( !DirectoryExists( webDir ) ) {
-			print.yellowLine( "Setting up your Preside server for first time use..." ).toConsole();
-			DirectoryCreate( webDir );
-		}
 		if ( !DirectoryExists( serverInfo.webConfigDir ) ) {
-			if ( !DirectoryExists( serverInfo.serverConfigDir & "/cfml-web" ) ) {
+			print.yellowLine( "Setting up your Preside server for first time use..." ).toConsole();
+			DirectoryCreate( serverInfo.webConfigDir );
+
+			var sourceWebConfigDirectory = commandBoxHomeDirectory & "/engine/cfml/cli/cfml-web";
+			if ( !DirectoryExists( sourceWebConfigDirectory ) ) {
 				print.line();
 				print.redLine("*************************************************************************************************************************************************************************");
-				print.redLine("Could not find server files. Please ensure you have the latest version of CommandBox. Expected to find files at [#serverInfo.serverConfigDir#/cfml-web]");
+				print.redLine("Could not find server files. Please ensure you have the latest version of CommandBox. Expected to find files at [#sourceWebConfigDirectory#]");
 				print.redLine("*************************************************************************************************************************************************************************");
 				print.line();
 
-				return false;
+				return {};
 			}
 
-			DirectoryCopy( serverInfo.serverConfigDir & "/cfml-web", serverInfo.webConfigDir, true );
+			DirectoryCopy( sourceWebConfigDirectory, serverInfo.webConfigDir, true );
 
 			var presideLocation = _setupPresideLocation( serverInfo.webConfigDir );
 			var datasource      = _setupDatasource();
 
-			var railoWebXml = FileRead( resourceDir & "/railo-web.xml.cfm" );
-			railoWebXml = ReplaceNoCase( railoWebXml, "${presideLocation}", presideLocation );
-			railoWebXml = ReplaceNoCase( railoWebXml, "${datasource}", datasource );
-			FileWrite( serverInfo.webConfigDir & "/railo-web.xml.cfm", railoWebXml );
-			FileWrite( serverInfo.webConfigDir & "/lucee-web.xml.cfm", railoWebXml );
+			var luceeWebXml = FileRead( resourceDir & "/lucee-web.xml.cfm" );
+			luceeWebXml = ReplaceNoCase( luceeWebXml, "${presideLocation}", presideLocation );
+			luceeWebXml = ReplaceNoCase( luceeWebXml, "${datasource}", datasource );
+			FileWrite( serverInfo.webConfigDir & "/lucee-web.xml.cfm", luceeWebXml );
+			FileWrite( serverInfo.webConfigDir & "/lucee-web.xml.cfm", luceeWebXml );
 		}
 
 		if ( !DirectoryExists( presideServerDir ) ) {
@@ -116,7 +109,7 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 			serverInfo.trayIcon = resourceDir & "/trayicon.png";
 		}
 
-		return true;
+		return serverInfo;
 	}
 
 	private string function _setupPresideLocation( required string webConfigDir ) output=false {
@@ -175,7 +168,7 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 				}
 			}
 
-			presideLocation = "{railo-web}/preside#versionDir#";
+			presideLocation = "{lucee-web}/preside#versionDir#";
 		}
 
 		return presideLocation;
