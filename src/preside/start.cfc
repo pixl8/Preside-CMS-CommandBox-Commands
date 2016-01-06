@@ -33,19 +33,8 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 		var preparedDirectoryProps = _prepareDirectories( argumentCollection=serverProps );
 		if ( preparedDirectoryProps.count() ) {
 			serverProps.append( preparedDirectoryProps );
-
-			// startup the service using server info struct
-			print.line();
-			print.greenLine("***********************************************************************************************************************************");
-			print.greenLine( serverService.start( serverProps=serverProps ) );
-			print.greenLine("***********************************************************************************************************************************");
-			print.line();
+			serverService.start( serverProps=serverProps );
 		}
-
-		// horrid workaround for a bug with threaded running of
-		// serverService.start() + box shell exiting before that
-		// command is finished
-		sleep( 2000 );
 	}
 
 	/**
