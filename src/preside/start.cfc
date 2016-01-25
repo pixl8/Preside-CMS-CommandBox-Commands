@@ -16,8 +16,9 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 	 * @debug.hint sets debug log level
 	 **/
 	function run(
-		  String  directory = ""
-		, Numeric heapSize  = 1024
+		  String  directory    = ""
+		, Numeric heapSize     = 1024
+		, Boolean saveSettings = false
 		, Numeric port
 		, Boolean openbrowser
 		, String  name
