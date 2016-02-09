@@ -28,8 +28,10 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 	){
 		var serverProps = arguments;
 
-		serverProps.directory = fileSystemUtil.resolvePath( arguments.directory );
-		serverProps.name      = serverProps.name is "" ? listLast( serverProps.directory, "\/" ) : serverProps.name;
+		serverProps.directory      = fileSystemUtil.resolvePath( arguments.directory );
+		serverProps.name           = serverProps.name is "" ? listLast( serverProps.directory, "\/" ) : serverProps.name;
+		serverProps.rewritesEnable = true;
+		serverProps.rewritesConfig = serverProps.directory & "/urlrewrite.xml";
 
 		var preparedDirectoryProps = _prepareDirectories( argumentCollection=serverProps );
 		if ( preparedDirectoryProps.count() ) {
@@ -79,18 +81,6 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 			FileWrite( serverInfo.webConfigDir & "/lucee-web.xml.cfm", luceeWebXml );
 		}
 
-		if ( !DirectoryExists( presideServerDir ) ) {
-			DirectoryCreate( presideServerDir );
-			zip action="unzip" file="#resourceDir#/PresideServer.zip" destination=presideServerDir;
-			var webxml = FileRead( presideServerDir   & "/web.xml" );
-			webxml = ReplaceNoCase( webxml, "${webConfigDir}"   , serverInfo.webConfigDir, "all" );
-			webxml = ReplaceNoCase( webxml, "${serverConfigDir}", serverInfo.serverConfigDir, "all" );
-			FileWrite( presideServerDir & "/web.xml", webxml );
-		}
-
-		serverInfo.libDirs  = presideServerDir  & "/lib";
-		serverInfo.webXml   = presideServerDir  & "/web.xml";
-
 		var osInfo = CreateObject("java", "java.lang.System").getProperties();
 		if (findNoCase( "Mac OS", osInfo['os.name'] )) {
 			serverInfo.trayIcon = resourceDir & "/trayicon_hires.png";
@@ -128,9 +118,9 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 				validVersion = true;
 
 				print.line().toConsole();
-				presideVersion  = shell.ask( "Which version of preside do you wish to install? (10.4.3) " );
+				presideVersion  = shell.ask( "Which version of preside do you wish to install? (10.4.6) " );
 				if ( !Len( Trim( presideVersion ) ) ) {
-					presideVersion = "10.4.3";
+					presideVersion = "10.4.6";
 				}
 				presideLocation = "http://downloads.presidecms.com/presidecms/release/PresideCMS-#presideVersion#.zip"; // in future this would be handled MUCH better!
 
