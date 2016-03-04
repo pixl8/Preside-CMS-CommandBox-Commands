@@ -118,13 +118,15 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 				validVersion = true;
 
 				print.line().toConsole();
-				presideVersion  = shell.ask( "Which version of preside do you wish to install? (10.5.0) " );
-				if ( !Len( Trim( presideVersion ) ) ) {
-					presideVersion = "10.5.0";
+				while( ![ "s", "b" ].findNoCase( presideVersion ) ) {
+					presideVersion  = shell.ask( "Which version of preside do you wish to install, (S)table or (B)leeding edge? [(S)/b]:" );
+					if ( !Len( Trim( presideVersion ) ) ) {
+						presideVersion = "s";
+					}
 				}
-				presideLocation = "http://downloads.presidecms.com/presidecms/release/PresideCMS-#presideVersion#.zip"; // in future this would be handled MUCH better!
+				presideLocation = "http://downloads.presidecms.com/presidecms/" & ( presideVersion == "b" ? "bleeding-edge.zip" : "release.zip" );
 
-				var presideZip = GetTempDirectory() & "/PresideCMS-#presideVersion#.zip";
+				var presideZip = GetTempDirectory() & "/PresideCMS.zip";
 				try {
 					print.line()
 					     .yellowLine( "Downloading Preside from [#presideLocation#]... please be patient" ).toConsole();
