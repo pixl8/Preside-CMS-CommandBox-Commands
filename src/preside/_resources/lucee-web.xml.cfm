@@ -73,5 +73,7 @@
 	<gateways/>
 
 	<orm/>
+	
+	<compiler dot-notation-upper-case="false" full-null-support="false" suppress-ws-before-arg="true"/>
 
 </lucee-configuration>
