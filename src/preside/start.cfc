@@ -4,6 +4,7 @@
 component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 
 	property name="serverService"           inject="ServerService";
+	property name="interceptorService"      inject="interceptorService";
 	property name="commandboxHomeDirectory" inject="HomeDir@constants";
 
 	/**
@@ -27,30 +28,37 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 		, Boolean debug
 	){
 		var serverProps = arguments;
+		var resourceDir = GetDirectoryFromPath( GetCurrentTemplatePath() ) & "/_resources";
+		var osInfo      = CreateObject("java", "java.lang.System").getProperties();
 
 		serverProps.directory      = fileSystemUtil.resolvePath( arguments.directory );
 		serverProps.name           = serverProps.name is "" ? listLast( serverProps.directory, "\/" ) : serverProps.name;
 		serverProps.rewritesEnable = true;
 		serverProps.rewritesConfig = serverProps.directory & "/urlrewrite.xml";
-
-		var preparedDirectoryProps = _prepareDirectories( argumentCollection=serverProps );
-		if ( preparedDirectoryProps.count() ) {
-			serverProps.append( preparedDirectoryProps );
-			serverService.start( serverProps=serverProps );
+		if (findNoCase( "Mac OS", osInfo['os.name'] )) {
+			serverProps.trayIcon = resourceDir & "/trayicon_hires.png";
 		}
+		else {
+			serverProps.trayIcon = resourceDir & "/trayicon.png";
+		}
+
+		interceptorService.registerInterceptor( this );
+		serverService.start( serverProps=serverProps );
+	}
+
+	function onServerInstall( event, interceptData ) {
+		var serverInfo = interceptData.serverInfo;
+
+		serverInfo.webConfigDir = interceptData.installDetails.installDir ?: serverInfo.webConfigDir;
+
+		_prepareDirectories( serverInfo );
 	}
 
 	/**
 	 * Private method to setup the web config directories with Preside specific configuration
 	 *
 	 */
-	private struct function _prepareDirectories( required string name, required string directory ) {
-		var serverInfo  = serverService.getServerInfo( arguments.directory );
-
-		serverInfo.append( arguments );
-		serverInfo.serverConfigDir = Len( Trim( serverInfo.serverConfigDir ) ) ? serverInfo.serverConfigDir : ( commandBoxHomeDirectory & "/engine/cfml/server" );
-		serverInfo.webConfigDir    = Len( Trim( serverInfo.webConfigDir    ) ) ? serverInfo.webConfigDir    : ( commandBoxHomeDirectory & "/server/#serverInfo.id#-#serverInfo.name#" );
-
+	private void function _prepareDirectories( required struct serverInfo ) {
 		var presideServerDir  = serverInfo.webConfigDir & "/preside";
 		var resourceDir       = GetDirectoryFromPath( GetCurrentTemplatePath() ) & "/_resources";
 
@@ -80,19 +88,9 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 			FileWrite( serverInfo.webConfigDir & "/lucee-web.xml.cfm", luceeWebXml );
 			FileWrite( serverInfo.webConfigDir & "/lucee-web.xml.cfm", luceeWebXml );
 		}
-
-		var osInfo = CreateObject("java", "java.lang.System").getProperties();
-		if (findNoCase( "Mac OS", osInfo['os.name'] )) {
-			serverInfo.trayIcon = resourceDir & "/trayicon_hires.png";
-		}
-		else {
-			serverInfo.trayIcon = resourceDir & "/trayicon.png";
-		}
-
-		return serverInfo;
 	}
 
-	private string function _setupPresideLocation( required string webConfigDir ) output=false {
+	private string function _setupPresideLocation( required string webConfigDir ) {
 		var presideLocation = "";
 
 		print.line().toConsole();
@@ -156,7 +154,7 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 		return presideLocation;
 	}
 
-	private string function _setupDatasource() output=false {
+	private string function _setupDatasource() {
 		print.line().toConsole();
 		print.yellowLine( "PresideCMS datasource setup (MySQL Only)" ).toConsole();
 		print.yellowLine( "========================================" ).toConsole();
