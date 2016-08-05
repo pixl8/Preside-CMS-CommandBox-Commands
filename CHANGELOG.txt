@@ -1,0 +1,6 @@
+0.6.0 > 2.0.4
+=============
+
+* Updated skeleton for `preside new site` command to use forgebox packages (in readiness for multiple skeleton options and simplifying the build process)
+* Use a hires icon for `preside start` servers on Linux machines (now that we will have working AppIndicators in Linux with CommandBox)
+* Do not prompt to download preside when we find preside already located in the webroot of the project when running `preside start` for the first time
