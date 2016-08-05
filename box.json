@@ -1,10 +1,10 @@
 {
     "name":"PresideCMS CommandBox Commands",
-    "version":"2.0.0",
-    "location":"https://github.com/pixl8/Preside-CMS-CommandBox-Commands/archive/v2.0.0.zip",
+    "version":"2.0.1",
+    "location":"https://github.com/pixl8/Preside-CMS-CommandBox-Commands/archive/v2.0.1.zip",
     "author":"Pixl8 Interactive",
     "createPackageDirectory":false,
-    "type":"command",
+    "type":"commands",
     "homepage":"https://github.com/pixl8/Preside-CMS-CommandBox-Commands",
     "repository":{
         "type":"git",
