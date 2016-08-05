@@ -1,3 +1,9 @@
+2.0.4 > 2.1.0
+=============
+
+* Add new webapp skeleton for creating non-cms based web applications on Preside
+* Added a post install concept for skeletons
+
 0.6.0 > 2.0.4
 =============
 
