@@ -15,6 +15,7 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 	 * @stopPort.hint stop socket listener port number
 	 * @force.hint force start if status is not stopped
 	 * @debug.hint sets debug log level
+	 * @trayIcon.hint Full path to image file to use for tray icon (Preside Puffin will be used by default)
 	 **/
 	function run(
 		  String  directory    = ""
@@ -26,6 +27,7 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 		, Numeric stopPort
 		, Boolean force
 		, Boolean debug
+		, String  trayIcon
 	){
 		var serverProps = arguments;
 		var resourceDir = GetDirectoryFromPath( GetCurrentTemplatePath() ) & "/_resources";
@@ -35,11 +37,14 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 		serverProps.name           = serverProps.name is "" ? listLast( serverProps.directory, "\/" ) : serverProps.name;
 		serverProps.rewritesEnable = true;
 		serverProps.rewritesConfig = serverProps.directory & "/urlrewrite.xml";
-		if (findNoCase( "Mac OS", osInfo['os.name'] )) {
-			serverProps.trayIcon = resourceDir & "/trayicon_hires.png";
-		}
-		else {
-			serverProps.trayIcon = resourceDir & "/trayicon.png";
+
+		if ( !serverProps.keyExists( "trayIcon" ) ){
+
+			if ( osInfo['os.name'].findNoCase( "Mac OS" ) || osInfo['os.name'].( "Linux" ) ) {
+				serverProps.trayIcon = resourceDir & "/trayicon_hires.png";
+			} else {
+				serverProps.trayIcon = resourceDir & "/trayicon.png";
+			}
 		}
 
 		interceptorService.registerInterceptor( this );
@@ -79,7 +84,7 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 
 			DirectoryCopy( sourceWebConfigDirectory, serverInfo.webConfigDir, true );
 
-			var presideLocation = _setupPresideLocation( serverInfo.webConfigDir );
+			var presideLocation = _setupPresideLocation( serverInfo.webConfigDir, serverInfo.directory );
 			var datasource      = _setupDatasource();
 
 			var luceeWebXml = FileRead( resourceDir & "/lucee-web.xml.cfm" );
@@ -90,8 +95,16 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 		}
 	}
 
-	private string function _setupPresideLocation( required string webConfigDir ) {
-		var presideLocation = "";
+	private string function _setupPresideLocation( required string webConfigDir, required string webroot ) {
+		var presideLocation = arguments.webroot.reReplace( "[\\/]$", "" ) & "/preside";
+
+		if ( FileExists( presideLocation & "/system/Bootstrap.cfc" ) ) {
+			print.line().toConsole();
+			print.yellowLine( "Using Preside location [#presideLocation#]..." ).toConsole();
+			print.line().toConsole();
+
+			return presideLocation;
+		}
 
 		print.line().toConsole();
 		print.yellowLine( "PresideCMS core installation" ).toConsole();
@@ -103,7 +116,7 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 		if ( useLocalVersion ) {
 			print.line().toConsole();
 			presideLocation = shell.ask( "Enter the path to Preside: " );
-			while( !DirectoryExists( presideLocation ) || !FileExists( presideLocation & "/system/BaseApplication.cfc" ) ) {
+			while( !DirectoryExists( presideLocation ) || !FileExists( presideLocation & "/system/Bootstrap.cfc" ) ) {
 				print.redLine( "The path you entered is not a valid Preside path!").toConsole();
 				presideLocation = shell.ask( "Enter the path to Preside: " );
 			}

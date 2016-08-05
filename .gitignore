@@ -1,4 +1,1 @@
-/build/artifacts
-/build/downloads
-/src/preside/_resources/preside-site-skeleton.zip
-/src/preside/PresideCMSCommandBoxCommands-*
+.twgit*
