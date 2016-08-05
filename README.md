@@ -1,8 +1,6 @@
 PresideCMS CommandBox Commands
 ==============================
 
-[![Build Status](https://travis-ci.org/pixl8/Preside-CMS-CommandBox-Commands.svg?branch=master)](https://travis-ci.org/pixl8/Preside-CMS-CommandBox-Commands)
-
 CommandBox commands for PresideCMS. This repository manages the code used to build the "preside" set of commands for CommandBox.
 
 ## Installation
