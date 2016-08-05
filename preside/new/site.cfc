@@ -7,18 +7,18 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 	property name="packageService" inject="PackageService";
 
 	variables._skeletonMap = {
-		"basic" = "preside-skeleton-basic"
+		  "basic" = "preside-skeleton-basic"
+		, "nocms" = "preside-skeleton-webapp"
 	};
 
 	/**
 	 * @siteid.hint         id of your site. Must contain alphanumerics, underscores and hyphens only
-	 * @skeleton.hint       The name of the app skeleton to use. Options: basic
+	 * @skeleton.hint       The name of the app skeleton to use. Options: basic, nocms
 	 * @skeleton.optionsUDF skeletonComplete
 	 **/
 	function run(
 		  required string siteid
-		,          string skeleton = "basic"
-		// , required string skeleton (when we have more than one skeleton, use this line + update docs for argument, above)
+		, required string skeleton
 	) {
 		var directory = shell.pwd();
 		var adminPath = arguments.siteid & "_admin"
@@ -41,6 +41,7 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 		);
 
 		_replacePlaceholdersWithArgs( argumentCollection=arguments, directory=directory, adminPath=adminPath );
+		_runPostInstallScripts( argumentCollection=arguments, directory=directory, adminPath=adminPath );
 
 		print.line();
 		print.greenLine( "*****************************************************************************************" );
@@ -74,6 +75,30 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 
 		FileWrite( configCfcPath, config );
 		FileWrite( appCfcPath   , appcfc );
+	}
+
+	private void function _runPostInstallScripts( required string siteId, required string adminPath, required string directory ){
+		var tmpDir = GetDirectoryFromPath( GetCurrentTemplatePath() ) & "/tmp";
+		var currentDir = shell.pwd();
+		var skeletonFile = currentDir & "/SkeletonInstall.cfc";
+
+		if ( FileExists( skeletonFile ) ) {
+			print.yellowLine( "");
+			print.yellowLine( "Running post install scripts...");
+			if ( DirectoryExists( tmpDir ) ) {
+				DirectoryDelete( tmpDir, true );
+			}
+			DirectoryCreate( tmpDir );
+			FileCopy( skeletonFile, tmpDir & "/SkeletonInstall.cfc" );
+			var skeletonInstall = new tmp.SkeletonInstall();
+
+			skeletonInstall.postInstall( directory=currentDir, siteId=arguments.siteId, adminPath=arguments.adminPath );
+			DirectoryDelete( tmpDir, true );
+			FileDelete( skeletonFile );
+
+			print.yellowLine( "Done.");
+			print.yellowLine( "");
+		}
 	}
 
 	function skeletonComplete( ) {
