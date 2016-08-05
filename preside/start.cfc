@@ -38,9 +38,8 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 		serverProps.rewritesEnable = true;
 		serverProps.rewritesConfig = serverProps.directory & "/urlrewrite.xml";
 
-		if ( !serverProps.keyExists( "trayIcon" ) ){
-
-			if ( osInfo['os.name'].findNoCase( "Mac OS" ) || osInfo['os.name'].( "Linux" ) ) {
+		if ( !serverProps.keyExists( "trayIcon" ) ) {
+			if ( osInfo['os.name'].findNoCase( "Mac OS" ) || osInfo['os.name'].findNoCase( "Linux" ) ) {
 				serverProps.trayIcon = resourceDir & "/trayicon_hires.png";
 			} else {
 				serverProps.trayIcon = resourceDir & "/trayicon.png";
@@ -84,7 +83,7 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 
 			DirectoryCopy( sourceWebConfigDirectory, serverInfo.webConfigDir, true );
 
-			var presideLocation = _setupPresideLocation( serverInfo.webConfigDir, serverInfo.directory );
+			var presideLocation = _setupPresideLocation( serverInfo.webConfigDir, serverInfo.webroot );
 			var datasource      = _setupDatasource();
 
 			var luceeWebXml = FileRead( resourceDir & "/lucee-web.xml.cfm" );
