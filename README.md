@@ -1,6 +1,3 @@
-PresideCMS CommandBox Commands
-==============================
-
 CommandBox commands for PresideCMS. This repository manages the code used to build the "preside" set of commands for CommandBox.
 
 ## Installation
