@@ -13,20 +13,11 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 	};
 
 	/**
-	 * @siteid.hint         id of your site. Must contain alphanumerics, underscores and hyphens only
 	 * @skeleton.hint       The name of the app skeleton to use. Options: basic, nocms
 	 * @skeleton.optionsUDF skeletonComplete
 	 **/
-	function run(
-		  required string siteid
-		,          string skeleton = ""
-	) {
+	function run( string skeleton = "" ) {
 		var directory = shell.pwd();
-		var adminPath = arguments.siteid & "_admin"
-
-		if ( !_validSlug( arguments.siteId ) ) {
-			return _printError( "Invalid site id. Site id must contain alphanumerics, underscores and hyphens only." );
-		}
 
 		while( arguments.skeleton == "" ) {
 			print.line( "" );
@@ -56,8 +47,7 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 			, currentWorkingDirectory = directory
 		);
 
-		_replacePlaceholdersWithArgs( argumentCollection=arguments, directory=directory, adminPath=adminPath );
-		_runPostInstallScripts( argumentCollection=arguments, directory=directory, adminPath=adminPath );
+		_runPostInstallScripts( directory=directory );
 
 		print.line();
 		print.greenLine( "*****************************************************************************************" );
@@ -69,28 +59,10 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 	}
 
 // PRIVATE HELPERS
-	private boolean function _validSlug( required string slug ) {
-		return ReFindNoCase( "^[a-z0-9-_]+$", arguments.slug );
-	}
-
 	private void function _printError( errorMessage ) {
 		print.line();
 		print.redLine( arguments.errorMessage );
 		print.line();
-	}
-
-	private void function _replacePlaceholdersWithArgs( required string siteId, required string adminPath, required string directory ) {
-		var configCfcPath = arguments.directory & "/application/config/Config.cfc";
-		var appCfcPath    = arguments.directory & "/Application.cfc";
-		var config        = FileRead( configCfcPath );
-		var appcfc        = FileRead( appCfcPath    );
-
-		config = ReplaceNoCase( config, "${site_id}"   , arguments.siteId   , "all" );
-		config = ReplaceNoCase( config, "${admin_path}", arguments.adminPath, "all" );
-		appcfc = ReplaceNoCase( appcfc, "${site_id}"   , arguments.siteId   , "all" );
-
-		FileWrite( configCfcPath, config );
-		FileWrite( appCfcPath   , appcfc );
 	}
 
 	private void function _runPostInstallScripts( required string siteId, required string adminPath, required string directory ){
