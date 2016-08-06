@@ -6,36 +6,44 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 
 	property name="packageService" inject="PackageService";
 	property name="wirebox"        inject="wirebox";
-
-	variables._skeletonMap = {
-		  "basic" = { package="preside-skeleton-basic" , description="A basic website application with CMS features enabled using vanilla bootstrap css and js for the 'theme'" }
-		, "nocms" = { package="preside-skeleton-webapp", description="A stripped down skeleton *admin application*. Has all CMS features disabled." }
-	};
+	property name="forgeBox"       inject="ForgeBox";
 
 	/**
-	 * @skeleton.hint       The name of the app skeleton to use. Options: basic, nocms
-	 * @skeleton.optionsUDF skeletonComplete
+	 * @skeleton.hint The name of the app skeleton to use. Options: basic, nocms
 	 **/
 	function run( string skeleton = "" ) {
 		var directory = shell.pwd();
 
 		while( arguments.skeleton == "" ) {
+			print.yellowLine( "Looking up available skeletons from forgebox.io... (hint: register a template by adding a forgebox package matching the pattern, 'preside-skeleton-*')" );
+			print.line();
+
+			var templates = _getSkeletonTemplates();
+
+			if ( templates.isEmpty() ) {
+				print.line( "" );
+				print.redLine( "No preside skeleton templates could be found! Ensure you are online and that https://www.forgebox.io is up and running." );
+				print.line( "" );
+			}
+
 			print.line( "" );
 			print.line( "Available skeleton templates from which to build your new site/application:" );
 			print.line( "" );
-			for( var skeletonId in variables._skeletonMap ) {
-				print.line( "   #skeletonId#: #variables._skeletonMap[ skeletonId ].description#" )
+			for( var templateId in templates ) {
+				print.text( " * " );
+				print.yellowText( "#templateId#" );
+				print.line( ": #templates[ templateId ].description#" );
 			}
 			print.line( "" );
 
 			arguments.skeleton = ask( "Enter the skeleton template to use: " );
-			if ( !variables._skeletonMap.keyExists( arguments.skeleton ) ) {
+			if ( !templates.keyExists( arguments.skeleton ) ) {
 				arguments.skeleton = "";
 			}
 		}
 
-		if( variables._skeletonMap.keyExists( arguments.skeleton ) ) {
-			arguments.skeleton = variables._skeletonMap[ arguments.skeleton ].package;
+		if( templates.keyExists( arguments.skeleton ) ) {
+			arguments.skeleton = templates[ arguments.skeleton ].package;
 		}
 
 		packageService.installPackage(
@@ -94,7 +102,18 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 		}
 	}
 
-	function skeletonComplete( ) {
-		return variables._skeletonMap.keyArray();
+	private struct function _getSkeletonTemplates() {
+		var templates       = {};
+		var forgeboxEntries = forgebox.getEntries( searchTerm = "preside-skeleton-" );
+
+		for( var entry in forgeboxEntries.results ) {
+			templates[ entry.slug.replace( "preside-skeleton-", "" ) ] = {
+				  name        = entry.title
+				, description = entry.summary
+				, package     = entry.slug
+			};
+		}
+
+		return templates;
 	}
 }
