@@ -8,8 +8,8 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 	property name="wirebox"        inject="wirebox";
 
 	variables._skeletonMap = {
-		  "basic" = "preside-skeleton-basic"
-		, "nocms" = "preside-skeleton-webapp"
+		  "basic" = { package="preside-skeleton-basic" , description="A basic website application with CMS features enabled using vanilla bootstrap css and js for the 'theme'" }
+		, "nocms" = { package="preside-skeleton-webapp", description="A stripped down skeleton *admin application*. Has all CMS features disabled." }
 	};
 
 	/**
@@ -19,17 +19,32 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 	 **/
 	function run(
 		  required string siteid
-		, required string skeleton
+		,          string skeleton = ""
 	) {
 		var directory = shell.pwd();
 		var adminPath = arguments.siteid & "_admin"
 
-		if ( !_validSlug( arguments.siteId    ) ) {
+		if ( !_validSlug( arguments.siteId ) ) {
 			return _printError( "Invalid site id. Site id must contain alphanumerics, underscores and hyphens only." );
 		}
 
+		while( arguments.skeleton == "" ) {
+			print.line( "" );
+			print.line( "Available skeleton templates from which to build your new site/application:" );
+			print.line( "" );
+			for( var skeletonId in variables._skeletonMap ) {
+				print.line( "   #skeletonId#: #variables._skeletonMap[ skeletonId ].description#" )
+			}
+			print.line( "" );
+
+			arguments.skeleton = ask( "Enter the skeleton template to use: " );
+			if ( !variables._skeletonMap.keyExists( arguments.skeleton ) ) {
+				arguments.skeleton = "";
+			}
+		}
+
 		if( variables._skeletonMap.keyExists( arguments.skeleton ) ) {
-			arguments.skeleton = variables._skeletonMap[ arguments.skeleton ];
+			arguments.skeleton = variables._skeletonMap[ arguments.skeleton ].package;
 		}
 
 		packageService.installPackage(
