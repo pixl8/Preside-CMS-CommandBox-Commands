@@ -47,7 +47,7 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 			, currentWorkingDirectory = directory
 		);
 
-		_runPostInstallScripts( directory=directory );
+		_runPostInstallScripts();
 
 		print.line();
 		print.greenLine( "*****************************************************************************************" );
@@ -65,7 +65,7 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 		print.line();
 	}
 
-	private void function _runPostInstallScripts( required string siteId, required string adminPath, required string directory ){
+	private void function _runPostInstallScripts(){
 		var tmpDir = GetDirectoryFromPath( GetCurrentTemplatePath() ) & "/tmp";
 		var currentDir = shell.pwd();
 		var skeletonFile = currentDir & "/SkeletonInstall.cfc";
@@ -85,7 +85,7 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 
 			var skeletonInstall = wireBox.getInstance( wireboxInstanceName );
 
-			skeletonInstall.postInstall( directory=currentDir, siteId=arguments.siteId, adminPath=arguments.adminPath );
+			skeletonInstall.postInstall( directory=currentDir );
 			DirectoryDelete( tmpDir, true );
 			FileDelete( skeletonFile );
 
