@@ -5,6 +5,7 @@
 component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 
 	property name="packageService" inject="PackageService";
+	property name="wirebox"        inject="wirebox";
 
 	variables._skeletonMap = {
 		  "basic" = "preside-skeleton-basic"
@@ -90,7 +91,12 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 			}
 			DirectoryCreate( tmpDir );
 			FileCopy( skeletonFile, tmpDir & "/SkeletonInstall.cfc" );
-			var skeletonInstall = new tmp.SkeletonInstall();
+
+			var wireboxInstanceName = "command-" & CreateUUId();
+			wirebox.registerNewInstance( name=wireboxInstanceName, instancePath="commandbox-home.commands.preside.new.tmp.SkeletonInstall" )
+			       .setVirtualInheritance( "commandbox.system.BaseCommand" );
+
+			var skeletonInstall = wireBox.getInstance( wireboxInstanceName );
 
 			skeletonInstall.postInstall( directory=currentDir, siteId=arguments.siteId, adminPath=arguments.adminPath );
 			DirectoryDelete( tmpDir, true );
