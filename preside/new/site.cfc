@@ -48,11 +48,9 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 
 		packageService.installPackage(
 			  id                      = arguments.skeleton
-			, directory               = directory
 			, save                    = false
 			, saveDev                 = false
 			, production              = true
-			, currentWorkingDirectory = directory
 		);
 
 		_runPostInstallScripts();
