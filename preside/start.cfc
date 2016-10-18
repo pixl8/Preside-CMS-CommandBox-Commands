@@ -50,12 +50,8 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 		serverService.start( serverProps=serverProps );
 	}
 
-	function onServerInstall( event, interceptData ) {
-		var serverInfo = interceptData.serverInfo;
-
-		serverInfo.webConfigDir = interceptData.installDetails.installDir ?: serverInfo.webConfigDir;
-
-		_prepareDirectories( serverInfo );
+	function onServerStart( event, interceptData ) {
+		_prepareDirectories( interceptData.serverInfo ?: {} );
 	}
 
 	/**
@@ -65,10 +61,11 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 	private void function _prepareDirectories( required struct serverInfo ) {
 		var presideServerDir  = serverInfo.webConfigDir & "/preside";
 		var resourceDir       = GetDirectoryFromPath( GetCurrentTemplatePath() ) & "/_resources";
+		var presideInitedFile = serverInfo.webConfigDir & "/.presideinitialized";
 
-		if ( !DirectoryExists( serverInfo.webConfigDir ) ) {
+		if ( !FileExists( presideInitedFile ) ) {
 			print.yellowLine( "Setting up your Preside server for first time use..." ).toConsole();
-			DirectoryCreate( serverInfo.webConfigDir );
+			DirectoryCreate( serverInfo.webConfigDir, false, true );
 
 			var sourceWebConfigDirectory = commandBoxHomeDirectory & "/engine/cfml/cli/cfml-web";
 			if ( !DirectoryExists( sourceWebConfigDirectory ) ) {
@@ -91,6 +88,7 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 			luceeWebXml = ReplaceNoCase( luceeWebXml, "${datasource}", datasource );
 			FileWrite( serverInfo.webConfigDir & "/lucee-web.xml.cfm", luceeWebXml );
 			FileWrite( serverInfo.webConfigDir & "/lucee-web.xml.cfm", luceeWebXml );
+			FileWrite( presideInitedFile, "" );
 		}
 	}
 
