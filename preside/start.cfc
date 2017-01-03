@@ -59,35 +59,42 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 	 *
 	 */
 	private void function _prepareDirectories( required struct serverInfo ) {
-		var presideServerDir  = serverInfo.webConfigDir & "/preside";
+		var webConfigDir      = serverInfo.webConfigDir;
+
+		if ( webConfigDir.startsWith( "/WEB-INF" ) ) {
+			webConfigDir = ( serverInfo.serverHomeDirectory ?: "" ) & webConfigDir;
+		}
+
+		var presideServerDir  = webConfigDir & "/preside";
 		var resourceDir       = GetDirectoryFromPath( GetCurrentTemplatePath() ) & "/_resources";
-		var presideInitedFile = serverInfo.webConfigDir & "/.presideinitialized";
+		var presideInitedFile = webConfigDir & "/.presideinitialized";
 
 		if ( !FileExists( presideInitedFile ) ) {
-			print.yellowLine( "Setting up your Preside server for first time use..." ).toConsole();
-			DirectoryCreate( serverInfo.webConfigDir, false, true );
+			if ( !DirectoryExists( webConfigDir ) ) {
+				DirectoryCreate( webConfigDir, false, true );
 
-			var sourceWebConfigDirectory = commandBoxHomeDirectory & "/engine/cfml/cli/cfml-web";
-			if ( !DirectoryExists( sourceWebConfigDirectory ) ) {
-				print.line();
-				print.redLine("*************************************************************************************************************************************************************************");
-				print.redLine("Could not find server files. Please ensure you have the latest version of CommandBox. Expected to find files at [#sourceWebConfigDirectory#]");
-				print.redLine("*************************************************************************************************************************************************************************");
-				print.line();
+				var sourceWebConfigDirectory = commandBoxHomeDirectory & "/engine/cfml/cli/cfml-web";
+				if ( !DirectoryExists( sourceWebConfigDirectory ) ) {
+					print.line();
+					print.redLine("*************************************************************************************************************************************************************************");
+					print.redLine("Could not find server files. Please ensure you have the latest version of CommandBox. Expected to find files at [#sourceWebConfigDirectory#]");
+					print.redLine("*************************************************************************************************************************************************************************");
+					print.line();
 
-				return {};
+					return {};
+				}
+
+				DirectoryCopy( sourceWebConfigDirectory, webConfigDir, true );
 			}
 
-			DirectoryCopy( sourceWebConfigDirectory, serverInfo.webConfigDir, true );
-
-			var presideLocation = _setupPresideLocation( serverInfo.webConfigDir, serverInfo.webroot );
+			var presideLocation = _setupPresideLocation( webConfigDir, serverInfo.webroot );
 			var datasource      = _setupDatasource();
 
 			var luceeWebXml = FileRead( resourceDir & "/lucee-web.xml.cfm" );
 			luceeWebXml = ReplaceNoCase( luceeWebXml, "${presideLocation}", presideLocation );
 			luceeWebXml = ReplaceNoCase( luceeWebXml, "${datasource}", datasource );
-			FileWrite( serverInfo.webConfigDir & "/lucee-web.xml.cfm", luceeWebXml );
-			FileWrite( serverInfo.webConfigDir & "/lucee-web.xml.cfm", luceeWebXml );
+			FileWrite( webConfigDir & "/lucee-web.xml.cfm", luceeWebXml );
+			FileWrite( webConfigDir & "/lucee-web.xml.cfm", luceeWebXml );
 			FileWrite( presideInitedFile, "" );
 		}
 	}
