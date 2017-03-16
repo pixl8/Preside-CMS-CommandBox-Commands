@@ -15,6 +15,7 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 	 * @stopPort.hint stop socket listener port number
 	 * @force.hint force start if status is not stopped
 	 * @debug.hint sets debug log level
+	 * @trayIcon.hint Full path to image file to use for tray icon (Preside Puffin will be used by default)
 	 **/
 	function run(
 		  String  directory    = ""
@@ -26,6 +27,7 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 		, Numeric stopPort
 		, Boolean force
 		, Boolean debug
+		, String  trayIcon
 	){
 		var serverProps = arguments;
 		var resourceDir = GetDirectoryFromPath( GetCurrentTemplatePath() ) & "/_resources";
@@ -35,23 +37,21 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 		serverProps.name           = serverProps.name is "" ? listLast( serverProps.directory, "\/" ) : serverProps.name;
 		serverProps.rewritesEnable = true;
 		serverProps.rewritesConfig = serverProps.directory & "/urlrewrite.xml";
-		if (findNoCase( "Mac OS", osInfo['os.name'] )) {
-			serverProps.trayIcon = resourceDir & "/trayicon_hires.png";
-		}
-		else {
-			serverProps.trayIcon = resourceDir & "/trayicon.png";
+
+		if ( !serverProps.keyExists( "trayIcon" ) ) {
+			if ( osInfo['os.name'].findNoCase( "Mac OS" ) || osInfo['os.name'].findNoCase( "Linux" ) ) {
+				serverProps.trayIcon = resourceDir & "/trayicon_hires.png";
+			} else {
+				serverProps.trayIcon = resourceDir & "/trayicon.png";
+			}
 		}
 
 		interceptorService.registerInterceptor( this );
 		serverService.start( serverProps=serverProps );
 	}
 
-	function onServerInstall( event, interceptData ) {
-		var serverInfo = interceptData.serverInfo;
-
-		serverInfo.webConfigDir = interceptData.installDetails.installDir ?: serverInfo.webConfigDir;
-
-		_prepareDirectories( serverInfo );
+	function onServerStart( event, interceptData ) {
+		_prepareDirectories( interceptData.serverInfo ?: {} );
 	}
 
 	/**
@@ -59,39 +59,56 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 	 *
 	 */
 	private void function _prepareDirectories( required struct serverInfo ) {
-		var presideServerDir  = serverInfo.webConfigDir & "/preside";
+		var webConfigDir      = serverInfo.webConfigDir;
+
+		if ( webConfigDir.startsWith( "/WEB-INF" ) ) {
+			webConfigDir = ( serverInfo.serverHomeDirectory ?: "" ) & webConfigDir;
+		}
+
+		var presideServerDir  = webConfigDir & "/preside";
 		var resourceDir       = GetDirectoryFromPath( GetCurrentTemplatePath() ) & "/_resources";
+		var presideInitedFile = webConfigDir & "/.presideinitialized";
 
-		if ( !DirectoryExists( serverInfo.webConfigDir ) ) {
-			print.yellowLine( "Setting up your Preside server for first time use..." ).toConsole();
-			DirectoryCreate( serverInfo.webConfigDir );
+		if ( !FileExists( presideInitedFile ) ) {
+			if ( !DirectoryExists( webConfigDir ) ) {
+				DirectoryCreate( webConfigDir, false, true );
 
-			var sourceWebConfigDirectory = commandBoxHomeDirectory & "/engine/cfml/cli/cfml-web";
-			if ( !DirectoryExists( sourceWebConfigDirectory ) ) {
-				print.line();
-				print.redLine("*************************************************************************************************************************************************************************");
-				print.redLine("Could not find server files. Please ensure you have the latest version of CommandBox. Expected to find files at [#sourceWebConfigDirectory#]");
-				print.redLine("*************************************************************************************************************************************************************************");
-				print.line();
+				var sourceWebConfigDirectory = commandBoxHomeDirectory & "/engine/cfml/cli/cfml-web";
+				if ( !DirectoryExists( sourceWebConfigDirectory ) ) {
+					print.line();
+					print.redLine("*************************************************************************************************************************************************************************");
+					print.redLine("Could not find server files. Please ensure you have the latest version of CommandBox. Expected to find files at [#sourceWebConfigDirectory#]");
+					print.redLine("*************************************************************************************************************************************************************************");
+					print.line();
 
-				return {};
+					return {};
+				}
+
+				DirectoryCopy( sourceWebConfigDirectory, webConfigDir, true );
 			}
 
-			DirectoryCopy( sourceWebConfigDirectory, serverInfo.webConfigDir, true );
-
-			var presideLocation = _setupPresideLocation( serverInfo.webConfigDir );
+			var presideLocation = _setupPresideLocation( webConfigDir, serverInfo.webroot );
 			var datasource      = _setupDatasource();
 
 			var luceeWebXml = FileRead( resourceDir & "/lucee-web.xml.cfm" );
 			luceeWebXml = ReplaceNoCase( luceeWebXml, "${presideLocation}", presideLocation );
 			luceeWebXml = ReplaceNoCase( luceeWebXml, "${datasource}", datasource );
-			FileWrite( serverInfo.webConfigDir & "/lucee-web.xml.cfm", luceeWebXml );
-			FileWrite( serverInfo.webConfigDir & "/lucee-web.xml.cfm", luceeWebXml );
+			FileWrite( webConfigDir & "/lucee-web.xml.cfm", luceeWebXml );
+			FileWrite( webConfigDir & "/lucee-web.xml.cfm", luceeWebXml );
+			FileWrite( presideInitedFile, "" );
 		}
 	}
 
-	private string function _setupPresideLocation( required string webConfigDir ) {
-		var presideLocation = "";
+	private string function _setupPresideLocation( required string webConfigDir, required string webroot ) {
+		var presideLocation = arguments.webroot.reReplace( "[\\/]$", "" ) & "/preside";
+
+		if ( FileExists( presideLocation & "/system/Bootstrap.cfc" ) ) {
+			print.line().toConsole();
+			print.yellowLine( "Using Preside location [#presideLocation#]..." ).toConsole();
+			print.line().toConsole();
+
+			return presideLocation;
+		}
 
 		print.line().toConsole();
 		print.yellowLine( "PresideCMS core installation" ).toConsole();
@@ -103,7 +120,7 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 		if ( useLocalVersion ) {
 			print.line().toConsole();
 			presideLocation = shell.ask( "Enter the path to Preside: " );
-			while( !DirectoryExists( presideLocation ) || !FileExists( presideLocation & "/system/BaseApplication.cfc" ) ) {
+			while( !DirectoryExists( presideLocation ) || !FileExists( presideLocation & "/system/Bootstrap.cfc" ) ) {
 				print.redLine( "The path you entered is not a valid Preside path!").toConsole();
 				presideLocation = shell.ask( "Enter the path to Preside: " );
 			}
