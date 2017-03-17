@@ -2,7 +2,6 @@
 <lucee-configuration version="4.2" pw="f76d0a69568e8afa331cc07973d31292f73500ec941a12614c22c16b0e5f7140">
 
 	<!-- these settings have had their defaults set differently from the Lucee defaults by the Preside Installer -->
-	<setting cfml-writer="white-space-pref" />
 	<compiler dot-notation-upper-case="false" />
 	<charset resource-charset="UTF-8" template-charset="UTF-8" web-charset="UTF-8"/>
 	<!-- end preside defaults -->
