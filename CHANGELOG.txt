@@ -1,3 +1,8 @@
+2.1.8 > 3.0.1
+=============
+
+* Refactor package to be a CommandBox module
+
 2.1.0 > 2.1.8
 =============
 
