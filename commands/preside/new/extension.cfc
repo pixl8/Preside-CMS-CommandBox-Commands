@@ -2,7 +2,7 @@
  * Scaffold a new PresideCMS extension, e.g.
  * > preside new extension "my-extension"
  **/
-component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
+component {
 
 	/**
 	 * @extensionid.hint ID of your your extension. Must contain alphanumerics, underscores and hyphens only
@@ -53,7 +53,7 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 	}
 
 	private void function _unpackSkeleton( required string directory ) {
-		var resourceDir = GetDirectoryFromPath( GetCurrentTemplatePath() ) & "/../_resources";
+		var resourceDir = GetDirectoryFromPath( GetCurrentTemplatePath() ) & "/../../../_resources";
 		var zipFile     = resourceDir & "/preside-extension-skeleton.zip";
 
 		zip action="unzip" file="#zipFile#" destination=directory;

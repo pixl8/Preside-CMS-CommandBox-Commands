@@ -1,7 +1,7 @@
 /**
  * Start a PresideCMS server
  **/
-component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
+component {
 
 	property name="serverService"           inject="ServerService";
 	property name="interceptorService"      inject="interceptorService";
@@ -30,7 +30,7 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 		, String  trayIcon
 	){
 		var serverProps = arguments;
-		var resourceDir = GetDirectoryFromPath( GetCurrentTemplatePath() ) & "/_resources";
+		var resourceDir = GetDirectoryFromPath( GetCurrentTemplatePath() ) & "/../../_resources";
 		var osInfo      = CreateObject("java", "java.lang.System").getProperties();
 
 		serverProps.directory      = fileSystemUtil.resolvePath( arguments.directory );
@@ -66,7 +66,7 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 		}
 
 		var presideServerDir  = webConfigDir & "/preside";
-		var resourceDir       = GetDirectoryFromPath( GetCurrentTemplatePath() ) & "/_resources";
+		var resourceDir       = GetDirectoryFromPath( GetCurrentTemplatePath() ) & "/../../_resources";
 		var presideInitedFile = webConfigDir & "/.presideinitialized";
 
 		if ( !FileExists( presideInitedFile ) ) {
