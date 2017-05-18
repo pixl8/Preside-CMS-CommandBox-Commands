@@ -2,7 +2,7 @@
  * Scaffold a new PresideCMS site, e.g.
  * > preside new site "my-site"
  **/
-component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
+component {
 
 	property name="packageService" inject="PackageService";
 	property name="wirebox"        inject="wirebox";
@@ -86,7 +86,7 @@ component extends="commandbox.system.BaseCommand" excludeFromHelp=false {
 			FileCopy( skeletonFile, tmpDir & "/SkeletonInstall.cfc" );
 
 			var wireboxInstanceName = "command-" & CreateUUId();
-			wirebox.registerNewInstance( name=wireboxInstanceName, instancePath="commandbox-home.commands.preside.new.tmp.SkeletonInstall" )
+			wirebox.registerNewInstance( name=wireboxInstanceName, instancePath="commandbox-home.cfml.modules.preside-commands.commands.preside.new.tmp.SkeletonInstall" )
 			       .setVirtualInheritance( "commandbox.system.BaseCommand" );
 
 			var skeletonInstall = wireBox.getInstance( wireboxInstanceName );
