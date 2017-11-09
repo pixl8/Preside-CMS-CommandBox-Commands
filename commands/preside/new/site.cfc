@@ -13,13 +13,12 @@ component {
 	 **/
 	function run( string skeleton = "" ) {
 		var directory = shell.pwd();
+		var templates = _getSkeletonTemplates();
 
 		while( arguments.skeleton == "" ) {
 			print.yellowLine( "Looking up available skeletons from forgebox.io... (hint: register a template by adding a forgebox package matching the pattern, 'preside-skeleton-*')" );
 			print.line();
-
-			var templates = _getSkeletonTemplates();
-
+			
 			if ( templates.isEmpty() ) {
 				print.line( "" );
 				print.redLine( "No preside skeleton templates could be found! Ensure you are online and that https://www.forgebox.io is up and running." );
