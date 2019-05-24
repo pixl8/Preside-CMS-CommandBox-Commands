@@ -1,6 +1,7 @@
 component {
 
-	property name="packageService" inject="packageService";
+	property name="packageService"  inject="provider:packageService";
+	property name="semanticVersion" inject="provider:semanticVersion@semver";
 
 // INTERCEPTION LISTENERS
 	public void function onInstall( interceptData ) {
@@ -39,41 +40,38 @@ component {
 	}
 
 	private void function _ensureDependenciesInstalled( required struct artifactDescriptor, required string installDirectory, required struct containerBoxJson ) {
-		var dependencies = _getExtensionDependencies( argumentCollection=arguments )
+		var dependencies = artifactDescriptor.preside.dependencies ?: {};
+		var packageSlug = artifactDescriptor.slug ?: "no-slug";
 
-		for( var dependency in dependencies ) {
-			if ( !_dependencyAlreadyInstalled( dependency, containerBoxJson ) ) {
-				packageService.installPackage( id=dependency, save=true );
+		for( var dependencySlug in dependencies ) {
+			var dependency = dependencies[ dependencySlug ]
+			if ( !_dependencyAlreadyInstalled( dependencySlug, dependency, containerBoxJson, packageSlug ) ) {
+				packageService.installPackage( id=( dependency.installVersion ?: dependencySlug ), save=true );
 			}
 		}
 	}
 
-	private array function _getExtensionDependencies( required struct artifactDescriptor, required string installDirectory ) {
-		var manifestPath = arguments.installDirectory & "/#( artifactDescriptor.slug ?: "" )#/manifest.json";
+	private boolean function _dependencyAlreadyInstalled( required string dependencySlug, required struct dependencyInfo, required struct containerBoxJson, required string packageSlug ) {
+		if ( StructKeyExists( containerBoxJson.dependencies, dependencySlug ) ) {
+			var hasMinVer = Len( Trim( dependencyInfo.minVersion ?: "" ) );
+			var hasMaxVer = Len( Trim( dependencyInfo.maxVersion ?: "" ) );
 
-		try {
-			var manifest = DeserializeJson( FileRead( manifestPath ) );
-			var autoInstall = manifest.autoInstall ?: [];
+			if ( hasMinVer || hasMaxVer ) {
+				var installedVersionRange = containerBoxJson.dependencies[ dependencySlug ];
+				if ( ListLen( installedVersionRange, "##@" ) == 2 ) {
+					installedVersionRange = ListRest( installedVersionRange, "##@" );
+				}
 
-			return IsArray( autoInstall ) ? autoInstall : [ autoInstall ];
-		} catch( any e ) {}
+				if ( hasMinVer && semanticVersion.compare( dependencyInfo.minVersion, installedVersionRange ) == 1 ) {
+					throw( type="preside.extension.dependency.version.mismatch", message="The already installed dependency [#dependencySlug#] of package [#packageSlug#] does not meet the minimum version requirement of [#dependencyInfo.minVersion#]. Please upgrade your [#dependencySlug#] extension to continue." );
+				}
 
-		return [];
-	}
+				if ( hasMaxVer && semanticVersion.compare( installedVersionRange, dependencyInfo.maxVersion ) == 1 ) {
+					throw( type="preside.extension.dependency.version.mismatch", message="The already installed dependency [#dependencySlug#] of package [#packageSlug#] exceeds the maximum version requirement of [#dependencyInfo.maxVersion#]. You will need to manually resolve this situation by either downgrading [#dependencySlug#], installing a later version of [#packageSlug#], or getting the package maintainers of [#packageSlug#] to update the package to be compatible with later versions of [#dependencySlug#]." );
+				}
+			}
 
-	private boolean function _dependencyAlreadyInstalled( required string dependency, required struct containerBoxJson ) {
-		if ( StructKeyExists( containerBoxJson.dependencies, ListFirst( dependency, "@")  ) ) {
 			return true;
-		}
-
-		var dependencyWithoutVersion = ListFirst( dependency, "##@" );
-
-		for( var installedDepSlug in containerBoxJson.dependencies ) {
-			var installedDep = ListFirst( containerBoxJson.dependencies[ installedDepSlug ], "##@" );
-
-			if ( installedDep == dependencyWithoutVersion ) {
-				return true;
-			}
 		}
 
 		return false;
