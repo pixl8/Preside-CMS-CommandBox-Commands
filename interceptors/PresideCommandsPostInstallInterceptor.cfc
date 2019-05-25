@@ -43,10 +43,21 @@ component {
 		var dependencies = artifactDescriptor.preside.dependencies ?: {};
 		var packageSlug = artifactDescriptor.slug ?: "no-slug";
 
+		_checkPresideMinMaxVersion(
+			  minVersion       = artifactDescriptor.preside.minVersion ?: ""
+			, maxVersion       = artifactDescriptor.preside.maxVersion ?: ""
+			, containerBoxJson = containerBoxJson
+			, packageSlug      = packageSlug
+		);
+
 		for( var dependencySlug in dependencies ) {
 			var dependency = dependencies[ dependencySlug ]
 			if ( !_dependencyAlreadyInstalled( dependencySlug, dependency, containerBoxJson, packageSlug ) ) {
-				packageService.installPackage( id=( dependency.installVersion ?: dependencySlug ), save=true );
+				var installVersion = dependency.installVersion ?: dependencySlug;
+				if ( !installVersion contains dependencySlug && !installVersion contains "@" ) {
+					installVersion = dependencySlug & "@" & installVersion;
+				}
+				packageService.installPackage( id=installVersion, save=true );
 			}
 		}
 	}
@@ -75,5 +86,26 @@ component {
 		}
 
 		return false;
+	}
+
+	private void function _checkPresideMinMaxVersion(
+		  required string minVersion
+		, required string maxVersion
+		, required struct containerBoxJson
+		, required string packageSlug
+	) {
+		if ( Len( Trim( arguments.minVersion ) ) || Len( Trim( arguments.maxVersion ) ) ) {
+			var installedPresideVersion = ListFirst( arguments.containerBoxJson.dependencies.presidecms ?: ( arguments.containerBoxJson.dependencies[ "preside-be" ] ?: "" ), "-" );
+
+			if ( Len( Trim( installedPresideVersion ) ) && !ListFindNoCase( "be,stable", installedPresideVersion ) ) {
+				if ( Len( Trim( arguments.minVersion ) ) && !semanticVersion.satisfies( arguments.minVersion, installedPresideVersion ) ) {
+					throw( type="preside.extension.dependency.version.mismatch", message="The Preside extension, [#packageSlug#], requires a minimum Preside version of [#arguments.minVersion#]. However, you currently have [#installedPresideVersion#], which does not meet the minimum requirement." );
+				}
+
+				if ( Len( Trim( arguments.maxVersion ) ) && semanticVersion.compare( arguments.maxVersion, installedPresideVersion ) == -1 ) {
+					throw( type="preside.extension.dependency.version.mismatch", message="The Preside extension, [#packageSlug#], requires a maximum Preside version of [#arguments.maxVersion#]. However, you currently have [#installedPresideVersion#], which exceeds the maximum requirement." );
+				}
+			}
+		}
 	}
 }
