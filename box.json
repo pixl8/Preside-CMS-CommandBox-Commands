@@ -1,7 +1,7 @@
 {
     "name":"PresideCMS CommandBox Commands",
-    "version":"3.0.4",
-    "location":"pixl8/Preside-CMS-CommandBox-Commands#v3.0.4",
+    "version":"VERSION_NUMBER",
+    "location":"https://s3.eu-west-2.amazonaws.com/pixl8-public-packages/preside-commands/DOWNLOAD_LOCATION",
     "author":"Pixl8 Interactive",
     "type":"commandbox-modules",
     "homepage":"https://github.com/pixl8/Preside-CMS-CommandBox-Commands",
