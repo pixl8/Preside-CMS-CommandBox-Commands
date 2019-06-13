@@ -98,7 +98,7 @@ component {
 			var installedPresideVersion = ListFirst( arguments.containerBoxJson.dependencies.presidecms ?: ( arguments.containerBoxJson.dependencies[ "preside-be" ] ?: "" ), "-" );
 
 			if ( Len( Trim( installedPresideVersion ) ) && !ListFindNoCase( "be,stable", installedPresideVersion ) ) {
-				if ( Len( Trim( arguments.minVersion ) ) && !semanticVersion.satisfies( arguments.minVersion, installedPresideVersion ) ) {
+				if ( Len( Trim( arguments.minVersion ) ) && semanticVersion.compare( arguments.minVersion, installedPresideVersion ) == 1 ) {
 					throw( type="preside.extension.dependency.version.mismatch", message="The Preside extension, [#packageSlug#], requires a minimum Preside version of [#arguments.minVersion#]. However, you currently have [#installedPresideVersion#], which does not meet the minimum requirement." );
 				}
 
