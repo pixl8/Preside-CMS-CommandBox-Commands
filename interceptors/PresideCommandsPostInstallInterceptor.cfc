@@ -21,6 +21,19 @@ component {
 		}
 	}
 
+	public void function onServerInstall( interceptData ) {
+		interceptData.serverInfo.trayOptions.prepend(
+			{
+				"label":"Preside",
+				"items": [
+					{ 'label':'Site Home', 'action':'openbrowser', 'url': interceptData.serverInfo.openbrowserURL },
+					{ 'label':'Site Admin', 'action':'openbrowser', 'url': '#interceptData.serverInfo.openbrowserURL#/#interceptData.serverInfo.name#_admin/' }
+				],
+				"image" : ""
+			}
+		);
+	}
+
 // PRIVATE HELPERS
 	private boolean function _isPresideApp( required string path ) {
 		var rootAppCfc = arguments.path.listAppend( "Application.cfc", "/" );
