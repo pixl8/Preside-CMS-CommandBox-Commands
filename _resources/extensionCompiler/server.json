@@ -1,6 +1,7 @@
 {
     "name":"presideextensioncompiler",
-    "openbrowser":"false",
+    "openbrowser":false,
+    "trayEnable":false,
     "CFConfigFile":"./cfconfig.json",
     "web":{
         "http":{

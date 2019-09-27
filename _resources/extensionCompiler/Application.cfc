@@ -2,14 +2,21 @@ component {
 	this.name = "presideExtensionCompiler";
 
 	function onRequest() {
-		var sourceDir = url.sourceDir ?: "";
-		var targetDir = url.targetDir ?: sourceDir;
+		try {
+			var sourceDir = url.sourceDir ?: "";
+			var targetDir = url.targetDir ?: sourceDir;
 
-		_validateSourceAndTargetDirs( sourceDir, targetDir );
-		_compile( sourceDir, targetDir, url.luceePassword ?: "" );
+			_validateSourceAndTargetDirs( sourceDir, targetDir );
+			_compile( sourceDir, targetDir );
 
-		content reset=true type="text/plain";
-		echo( "Compilation of source dir [#sourceDir#] has complete. Compiled files are to be found at target dir [#targetDir#]." );
+			content reset=true type="text/plain";
+			echo( "Compilation of source dir [#sourceDir#] has complete. Compiled files are to be found at target dir [#targetDir#]." );
+		} catch( any e ) {
+			content reset=true type="text/plain";
+			header statuscode=500;
+			echo( "There was an error compiling your extension. Message: [#e.message#]. Detail: [#e.detail#]" );
+
+		}
 	}
 
 	function _validateSourceAndTargetDirs( sourceDir, targetDir ) {
@@ -22,27 +29,29 @@ component {
 		if ( !DirectoryExists( sourceDir ) ) {
 			throw( type="preside.compiler.bad.input", message="sourceDir not found, [#sourceDir#]" );
 		}
-		if ( !DirectoryExists( targetDir ) ) {
-			throw( type="preside.compiler.bad.input", message="targetDir not found, [#targetDir#]" );
-		}
 	}
 
-	function _compile( sourceDir, targetDir, luceePassword ) {
+	function _compile( sourceDir, targetDir ) {
 		var tmpdir = getTempDirectory() & "/" & CreateUUId();
 
-		_createObjectPropFiles( sourceDir );
-		_createViewParamFiles( sourceDir );
-		_compileWithCfAdmin( sourceDir, luceePassword, tmpdir );
+		_copySrcToTmp( sourceDir, tmpDir );
+		_createObjectPropFiles( tmpDir );
+		_createViewParamFiles( tmpDir );
+		_compileWithCfAdmin( tmpDir );
 		_copyClassFilesOnTopOfSourceFiles( tmpdir );
 		_moveFromTmpToTargetDir( tmpDir, targetDir );
 	}
 
-	function _compileWithCfAdmin( sourceDir, luceePassword, tmpDir ) {
+	function _copySrcToTmp( sourceDir, tmpDir ) {
+		DirectoryCopy( sourceDir, tmpDir, true, "*", true );
+	}
+
+	function _compileWithCfAdmin( sourceDir ) {
 		var tmpFile = getTempFile( getTempDirectory(), "compiled" ) & ".zip";
 
 		admin action="updateMapping"
 		      type="web"
-		      password=luceePassword
+		      password=""
 		      virtual="/presideExtensionCompilerSource"
 		      physical=sourceDir
 		      archive=false
@@ -53,15 +62,15 @@ component {
 
 		admin action="createArchive"
 		      type="web"
-		      password=luceePassword
+		      password=""
 		      file=tmpFile
 		      virtual="/presideExtensionCompilerSource"
 		      addCFMLFiles=true
 		      addNonCFMLFiles=true;
 
-		zip action="unzip" file=tmpFile destination=tmpdir;
+		DirectoryDelete( sourceDir, true );
 
-		return tmpDir;
+		zip action="unzip" file=tmpFile destination=sourceDir;
 	}
 
 	function _copyClassFilesOnTopOfSourceFiles( tmpdir ) {
@@ -93,16 +102,16 @@ component {
 			}
 		}
 
-		FileDelete( tmpDir & "/META-INF/MANIFEST.MF" )
-		try {
-			DirectoryDelete( tmpDir & "/META-INF" )
-		} catch( any e ){
-			// won't delete if not empty, all good
-		}
+		try { FileDelete( tmpDir & "/META-INF/META-INF/MANIFEST.MF" ); } catch( any e ){}
+		try { FileDelete( tmpDir & "/META-INF/MANIFEST.MF"          ); } catch( any e ){}
+		try { FileDelete( tmpDir & "/META-INF/META-INF"             ); } catch( any e ){}
+		try { FileDelete( tmpDir & "/META-INF"                      ); } catch( any e ){}
 	}
 
 	function _moveFromTmpToTargetDir( tmpdir, targetDir ) {
-		DirectoryDelete( targetDir, true );
+		if ( DirectoryExists( targetDir ) ) {
+			DirectoryDelete( targetDir, true );
+		}
 		DirectoryCopy( tmpDir, targetDir, true, "*", true );
 	}
 
@@ -137,7 +146,7 @@ component {
 
 	private string function _readViewParams( required string filePath ) {
 		var fileContent     = FileExists( arguments.filePath ) ? FileRead( arguments.filePath ) : "";
-		var regexes         = [ '<' & '(?:cfparam|cf_presideparam)\s[^>]*?name\s*=\s*"args\.(.*?)".*?>', 'param\s[^;]*?name\s*=\s*"args\.(.*?)"\s*;' ];
+		var regexes         = [ '<' & '(?:cfparam|cf_presideparam)\s[^>]*?name\s*=\s*"args\.(.*?)".*?>', '\bparam\s[^;]*?name\s*=\s*"args\.(.*?)"\s*;' ];
 		var fieldRegex      = 'field\s*=\s*"(.*?)"';
 		var rendererRegex   = 'renderer\s*=\s*"(.*?)"';
 		var editableRegex   = 'editable\s*=\s*(true|"true")';
@@ -165,9 +174,6 @@ component {
 					fieldName = result.pos.len() eq 2 and result.pos[2] ? Mid( match, result.pos[2], result.len[2] ) : alias;
 
 					if ( fieldName != "false" ) {
-						if ( params.len() ) {
-							WriteDump( regexes[ i ] ); abort;
-						}
 						params.append( match );
 					}
 
