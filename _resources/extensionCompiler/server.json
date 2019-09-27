@@ -1,0 +1,10 @@
+{
+    "name":"presideextensioncompiler",
+    "openbrowser":"false",
+    "CFConfigFile":"./cfconfig.json",
+    "web":{
+        "http":{
+            "port":"1337"
+        }
+    }
+}
