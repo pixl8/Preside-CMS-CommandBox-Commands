@@ -29,6 +29,18 @@ component {
 		if ( !DirectoryExists( sourceDir ) ) {
 			throw( type="preside.compiler.bad.input", message="sourceDir not found, [#sourceDir#]" );
 		}
+
+		var manifest = sourceDir & "/manifest.json";
+		if ( !FileExists( manifest ) ) {
+			throw( type="preside.compiler.bad.input", message="sourceDir [#sourceDir#] appears not to be a Preside extension. Missing manifest.json file." );
+		}
+
+		try {
+			manifest = DeserializeJson( FileRead( manifest ) );
+			this.extensionMapping = "/#manifest.id#";
+		} catch( any e ) {
+			throw( type="preside.compiler.bad.input", message="sourceDir [#sourceDir#] appears not to be a Preside extension OR manifest.json file is malformed." );
+		}
 	}
 
 	function _compile( sourceDir, targetDir ) {
@@ -52,7 +64,7 @@ component {
 		admin action="updateMapping"
 		      type="web"
 		      password=""
-		      virtual="/presideExtensionCompilerSource"
+		      virtual=this.extensionMapping
 		      physical=sourceDir
 		      archive=false
 			  primary=false
@@ -64,7 +76,7 @@ component {
 		      type="web"
 		      password=""
 		      file=tmpFile
-		      virtual="/presideExtensionCompilerSource"
+		      virtual=this.extensionMapping
 		      addCFMLFiles=true
 		      addNonCFMLFiles=true;
 

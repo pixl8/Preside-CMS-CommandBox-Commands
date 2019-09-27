@@ -3,9 +3,7 @@
  **/
 component {
 
-	property name="serverService"           inject="ServerService";
-	property name="interceptorService"      inject="interceptorService";
-	property name="commandboxHomeDirectory" inject="HomeDir@constants";
+	property name="serverService" inject="ServerService";
 
 	/**
 	 * @sourceDir.hint    Source directory containing extension to compile
@@ -20,6 +18,10 @@ component {
 		, numeric luceeVersion = "5.3.2"
 		, boolean force        = false
 	){
+		if ( !_checkCfConfig() ) {
+			return;
+		}
+
 		var source  = fileSystemUtil.resolvePath( sourceDir );
 		var target  = fileSystemUtil.resolvePath( targetDir );
 		var confirm = arguments.force ? "Y" : "";
@@ -94,5 +96,22 @@ component {
 		var serverInfo = serverService.getServerInfoByName( "presideextensioncompiler" );
 
 		return !StructIsEmpty( serverInfo ) && serverService.isServerRunning( serverInfo );
+	}
+
+	private boolean function _checkCfConfig() {
+		var modules = getWirebox().getInstance("moduleService" ).getModuleRegistry().keyArray();
+
+		if ( !modules.findNoCase( "commandbox-cfconfig" ) ) {
+			print.yellowLine( "----------------------------------------------------------------");
+			print.yellowLine( "CFConfig is not installed. CFConfig is required by the compiler.");
+			print.yellowLine( "CFConfig should be installed using: ");
+			print.line();
+			print.yellowLine( "    box install commandbox-cfconfig");
+			print.line();
+			print.yellowLine( "----------------------------------------------------------------");
+			return false;
+		}
+
+		return true;
 	}
 }

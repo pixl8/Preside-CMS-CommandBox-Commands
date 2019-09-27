@@ -1,5 +1,10 @@
 # Changelog
 
+## 5.0.1
+
+* Ensure extension mapping is useful when compiling extension sources. e.g. /extension-name
+* Ensure that CFConfig is installed before attempting extension compile command
+
 ## 5.0.0
 
 * Add 'preside extension compile' command
