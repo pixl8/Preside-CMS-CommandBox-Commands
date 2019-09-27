@@ -10,13 +10,14 @@ component {
 	/**
 	 * @sourceDir.hint    Source directory containing extension to compile
 	 * @targetDir.hint    Target directory where compiled source will be placed (defaults to same location as source directory)
-	 * @luceeVersion.hint Version of Lucee to compile against (defaults to 5.3.3)
+	 * @luceeVersion.hint Version of Lucee to compile against (defaults to 5.3.2)
+	 * @force.hint        Whether or not to go ahead without prompting (default is false)
 	 *
 	 **/
 	function run(
 		  string  sourceDir    = "./"
 		, string  targetDir    = arguments.sourceDir
-		, numeric luceeVersion = "5.3.3"
+		, numeric luceeVersion = "5.3.2"
 		, boolean force        = false
 	){
 		var source  = fileSystemUtil.resolvePath( sourceDir );
