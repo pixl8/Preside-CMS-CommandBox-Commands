@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.0.0
+
+* Add 'preside extension compile' command
+
 ## 4.0.0
 
 * Add dependency fulfillment and checking between preside extensions in box install
