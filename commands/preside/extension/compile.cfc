@@ -67,7 +67,7 @@ component {
 		var attempts = 0;
 
 		while( !_serverIsRunning() && ++attempts <= 10 ) {
-			wait( 1000 );
+			sleep( 1000 );
 		}
 
 		if ( !_serverIsRunning() ) {
