@@ -6,12 +6,14 @@ component {
 	property name="serverService"           inject="ServerService";
 	property name="interceptorService"      inject="interceptorService";
 	property name="commandboxHomeDirectory" inject="HomeDir@constants";
+	property name="interactive"             default=true;
 
 	/**
 	 * @port.hint port number
 	 * @openbrowser.hint open a browser after starting
 	 * @directory.hint web root for this server
 	 * @name.hint short name for this server
+	 * @interactive.hint whether or not to prompt for preside mapping and datasource
 	 * @stopPort.hint stop socket listener port number
 	 * @force.hint force start if status is not stopped
 	 * @debug.hint sets debug log level
@@ -21,6 +23,7 @@ component {
 		  String  directory    = ""
 		, Numeric heapSize     = 1024
 		, Boolean saveSettings = false
+		, Boolean interactive  = true
 		, Numeric port
 		, Boolean openbrowser
 		, String  name
@@ -37,6 +40,7 @@ component {
 		serverProps.name           = serverProps.name is "" ? listLast( serverProps.directory, "\/" ) : serverProps.name;
 		serverProps.rewritesEnable = true;
 		serverProps.rewritesConfig = serverProps.directory & "/urlrewrite.xml";
+		this.interactive           = arguments.interactive;
 
 		if ( !serverProps.keyExists( "trayIcon" ) ) {
 			if ( osInfo['os.name'].findNoCase( "Mac OS" ) || osInfo['os.name'].findNoCase( "Linux" ) ) {
@@ -86,9 +90,8 @@ component {
 
 				DirectoryCopy( sourceWebConfigDirectory, webConfigDir, true );
 			}
-
 			var presideLocation = _setupPresideLocation( webConfigDir, serverInfo.webroot );
-			var datasource      = _setupDatasource();
+			var datasource      = this.interactive ? _setupDatasource() : "";
 
 			var luceeWebXml = FileRead( resourceDir & "/lucee-web.xml.cfm" );
 			luceeWebXml = ReplaceNoCase( luceeWebXml, "${presideLocation}", presideLocation );
@@ -108,6 +111,10 @@ component {
 			print.line().toConsole();
 
 			return presideLocation;
+		}
+
+		if ( !this.interactive ) {
+			return "";
 		}
 
 		print.line().toConsole();
