@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.0.3
+
+* Allow `preside start` to be run in non-interactive shell with `preside start interactive=false`
+
 ## 5.0.1
 
 * Ensure extension mapping is useful when compiling extension sources. e.g. /extension-name
