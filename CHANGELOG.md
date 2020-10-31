@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.0.1-2
+
+* Build fixes
+
 ## 6.0.0
 
 * A whole new version of `preside new extension` that includes scaffolds for tests and Github actions flow for publishing to forgebox.
