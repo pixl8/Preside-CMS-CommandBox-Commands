@@ -39,7 +39,7 @@ jobs:
 
       - name: Zip project
         if: "env.PUBLISH == 'true'"
-        run: zip -rq $ZIP_FILE * -x jmimemagic.log -x *.sh -x *.log
+        run: zip -rq $ZIP_FILE * -x *.log
         shell: bash
         env:
           ZIP_FILE: ${{ steps.versiongen.outputs.semver_release_number }}.zip
