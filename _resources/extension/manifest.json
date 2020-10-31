@@ -1,0 +1,7 @@
+{
+	  "id"        : "preside-ext-EXTENSIONSLUG"
+	, "title"     : "EXTENSIONNAME"
+	, "author"    : "AUTHOR"
+	, "version"   : "$VERSION_NUMBER"
+	, "dependsOn" : []
+}

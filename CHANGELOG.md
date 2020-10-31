@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.0.0
+
+* A whole new version of `preside new extension` that includes scaffolds for tests and Github actions flow for publishing to forgebox.
+
 ## 5.0.3
 
 * Allow `preside start` to be run in non-interactive shell with `preside start interactive=false`
