@@ -16,6 +16,7 @@ component {
 
 			var artifactBoxJson = interceptData.artifactDescriptor;
 			if ( _isExtension( artifactBoxJson ) ) {
+				_compatibilityChecks( artifactBoxJson, interceptData.containerBoxJson ?: {} );
 				_ensureDependenciesInstalled( artifactBoxJson, interceptData.installDirectory ?: "", interceptData.containerBoxJson ?: {} );
 			}
 		}
@@ -37,6 +38,45 @@ component {
 		var artifactDir = artifactDescriptor.directory ?: "";
 
 		return artifactType == "preside-extensions" || artifactDir == "application/extensions";
+	}
+
+	private void function _compatibilityChecks(
+		  required struct artifactDescriptor
+		, required struct containerBoxJson
+	) {
+		var compatibility = artifactDescriptor.preside.compatibility ?: {};
+		var packageSlug   = artifactDescriptor.slug ?: "no-slug";
+
+		for( var compatSlug in compatibility ) {
+			var compat = compatibility[ compatSlug ];
+			var compatible = !IsBoolean( compat.compatible ?: "" ) || compat.compatible;
+			var minVersion = compat.minVersion ?: "";
+			var maxVersion = compat.maxVersion ?: "";
+			var targetPackage = containerBoxJson.dependencies[ compatSlug ] ?: "";
+
+			if ( StructKeyExists( containerBoxJson.dependencies, compatSlug ) ) {
+				if ( !compatible ) {
+					throw(
+						  type    = "preside.extension.dependency.compatibility.issue"
+						, message = compat.message ?: "The extension [#packageSlug#] has a compatibility issue with the [#compatSlug#] package. To install [#packageSlug#], first uninstall [#compatSlug#]."
+					);
+				}
+
+				var targetVersion = ListRest( containerBoxJson.dependencies[ compatSlug ], "@##" );
+				if ( Len( minVersion ) && semanticVersion.compare( targetVersion, minVersion ) == -1 ) {
+					throw(
+						  type    = "preside.extension.dependency.compatibility.issue"
+						, message = compat.message ?: "The extension [#packageSlug#] requires that the [#compatSlug#] package be at least version: [#minVersion#]. To install [#packageSlug#], first ensure that [#compatSlug#] is upgraded to at least [#minVersion#]."
+					);
+				}
+				if ( Len( maxVersion ) && semanticVersion.compare( targetVersion, maxVersion ) == 1 ) {
+					throw(
+						  type    = "preside.extension.dependency.compatibility.issue"
+						, message = compat.message ?: "The extension [#packageSlug#] requires that the [#compatSlug#] package be at or below version: [#minVersion#]. To install [#packageSlug#], first ensure that [#compatSlug#] is downgraded to version [#minVersion#] or before."
+					);
+				}
+			}
+		}
 	}
 
 	private void function _ensureDependenciesInstalled( required struct artifactDescriptor, required string installDirectory, required struct containerBoxJson ) {

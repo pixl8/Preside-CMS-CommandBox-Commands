@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.1.0
+
+* Add ability for Preside extensions to expression compatibility issues with other extensions.
+
 ## 6.0.1-3
 
 * Build fixes
