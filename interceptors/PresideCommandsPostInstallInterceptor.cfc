@@ -112,6 +112,9 @@ component {
 				if ( ListLen( installedVersionRange, "##@" ) == 2 ) {
 					installedVersionRange = ListRest( installedVersionRange, "##@" );
 				}
+				if ( ListLen( installedVersionRange, "-" ) > 1 ) {
+					installedVersionRange = ListFirst( installedVersionRange, "-" );
+				}
 
 				if ( hasMinVer && semanticVersion.compare( dependencyInfo.minVersion, installedVersionRange ) == 1 ) {
 					throw( type="preside.extension.dependency.version.mismatch", message="The already installed dependency [#dependencySlug#] of package [#packageSlug#] does not meet the minimum version requirement of [#dependencyInfo.minVersion#]. Please upgrade your [#dependencySlug#] extension to continue." );
