@@ -13,11 +13,13 @@ component {
 					break;
 				}
 			}
-
-			var artifactBoxJson = interceptData.artifactDescriptor;
-			if ( _isExtension( artifactBoxJson ) ) {
-				_compatibilityChecks( artifactBoxJson, interceptData.containerBoxJson ?: {} );
-				_ensureDependenciesInstalled( artifactBoxJson, interceptData.installDirectory ?: "", interceptData.containerBoxJson ?: {} );
+			var skipPackageChecks = IsBoolean( interceptData.installArgs.skipPresidePackageChecking ?: "" ) && interceptData.installArgs.skipPresidePackageChecking;
+			if ( !skipPackageChecks ) {
+				var artifactBoxJson = interceptData.artifactDescriptor;
+				if ( _isExtension( artifactBoxJson ) ) {
+					_compatibilityChecks( artifactBoxJson, interceptData.containerBoxJson ?: {} );
+					_ensureDependenciesInstalled( artifactBoxJson, interceptData.installDirectory ?: "", interceptData.containerBoxJson ?: {} );
+				}
 			}
 		}
 	}
