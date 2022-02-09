@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.1.2
+
+* Add ability for other packages to do programatic installs and skip the preside package compatibility checking
+
 ## 6.1.1
 
 * When doing version compatibility checks, ignore snapshot part of version strings. i.e. 4.3.0-SNAPSHOT4598 should just be treated as 4.3.0
