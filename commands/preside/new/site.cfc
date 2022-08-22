@@ -101,7 +101,7 @@ component {
 
 	private struct function _getSkeletonTemplates() {
 		var templates       = {};
-		var forgeboxEntries = forgebox.getEntries( searchTerm = "preside-skeleton-" );
+		var forgeboxEntries = forgebox.getEntries( typeSlug = "preside-skeletons" );
 
 		for( var entry in forgeboxEntries.results ) {
 			templates[ entry.slug.replace( "preside-skeleton-", "" ) ] = {
