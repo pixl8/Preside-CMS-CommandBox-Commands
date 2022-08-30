@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.1.3
+
+* Update to forgebox api calls for correctly fetching preside skeletons for the `preside new site` command
+
 ## 6.1.2
 
 * Add ability for other packages to do programatic installs and skip the preside package compatibility checking
