@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.1.4
+
+* Update the datasource definition in lucee web admin to include a db driver ([Pull requestion](https://github.com/pixl8/Preside-CMS-CommandBox-Commands/pull/16))
+
 ## 6.1.3
 
 * Update to forgebox api calls for correctly fetching preside skeletons for the `preside new site` command
