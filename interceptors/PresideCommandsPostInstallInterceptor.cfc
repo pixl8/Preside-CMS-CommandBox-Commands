@@ -64,7 +64,7 @@ component {
 					);
 				}
 
-				var targetVersion = ListRest( containerBoxJson.dependencies[ compatSlug ], "@##" );
+				var targetVersion = _getPackageVersion( containerBoxJson.dependencies[ compatSlug ] );
 				if ( Len( minVersion ) && semanticVersion.compare( targetVersion, minVersion ) == -1 ) {
 					throw(
 						  type    = "preside.extension.dependency.compatibility.issue"
@@ -152,5 +152,13 @@ component {
 				}
 			}
 		}
+	}
+
+	private string function _getPackageVersion( packageId ) {
+		if ( ReFindNoCase( "^s3://", packageId ) ) {
+			return ReReplace( ListLast( packageId, "/" ), "\.zip$", "" );
+		}
+
+		return ListRest( packageId, "@##" )
 	}
 }

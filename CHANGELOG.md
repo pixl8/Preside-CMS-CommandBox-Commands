@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.1.5
+
+* Fix for issue where version number of package not read for dependencies stored in S3 with release version number in their filename
+
 ## 6.1.4
 
 * Update the datasource definition in lucee web admin to include a db driver ([Pull requestion](https://github.com/pixl8/Preside-CMS-CommandBox-Commands/pull/16))
