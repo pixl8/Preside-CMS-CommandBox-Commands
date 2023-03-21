@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.1.6
+
+* Fix for broken paths in Gruntfile generated for new extension command when choosing to manage static assets with grunt
+
 ## 6.1.5
 
 * Fix for issue where version number of package not read for dependencies stored in S3 with release version number in their filename
