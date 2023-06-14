@@ -102,7 +102,7 @@ component {
 			var luceeWebXml = FileRead( resourceDir & "/lucee-web.xml.cfm" );
 			luceeWebXml = ReplaceNoCase( luceeWebXml, "${presideLocation}", presideLocation );
 			luceeWebXml = ReplaceNoCase( luceeWebXml, "${datasource}", datasource );
-	
+
 			if ( isLucee6orLater ) { // write config to server, for single context mode with 6+
 				var serverContextDir = serverConfigDir & "/lucee-server/context";
 				if ( !DirectoryExists( serverContextDir  ) ) {
@@ -198,6 +198,9 @@ component {
 		print.yellowLine( "========================================" ).toConsole();
 		print.line().toConsole();
 
+		wirebox.getInstance( 'interactiveJob' ).setActive( false );
+		wirebox.getInstance( 'consolePainter' ).stop();
+
 		if ( shell.ask( "Setup MySQL datasource now [Y/n]? " ) == "n" ) {
 			return "";
 		}
@@ -218,6 +221,9 @@ component {
 
 		if( !Len( Trim( host ) ) ) { host = "localhost"; }
 		if( !Len( Trim( port ) ) ) { port = "3306"; }
+
+		wirebox.getInstance( 'interactiveJob' ).setActive( true );
+		wirebox.getInstance( 'consolePainter' ).start();
 
 		return '<data-source allow="511" blob="false" class="org.gjt.mm.mysql.Driver" clob="true" connectionLimit="-1" connectionTimeout="1" custom="useUnicode=true&amp;characterEncoding=UTF-8" database="#db#" dbdriver="mysql" dsn="jdbc:mysql://{host}:{port}/{database}" host="#host#" metaCacheTimeout="60000" name="preside" password="#pass#" port="#port#" storage="false" username="#usr#" validate="false"/>';
 	}
