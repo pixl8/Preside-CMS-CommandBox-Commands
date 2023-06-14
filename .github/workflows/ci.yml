@@ -4,7 +4,7 @@ on:
   pull_request:
 jobs:
   ci:
-    name: CI for Pirate
+    name: CI for Preside CommandBox Commands
     runs-on: ubuntu-latest
     steps:
       - name: Setup flow variables
@@ -39,7 +39,7 @@ jobs:
 
       - name: Zip project
         if: "env.PUBLISH == 'true'"
-        run: zip -rq $ZIP_FILE * -x *.log
+        run: zip -rq $ZIP_FILE * -x jmimemagic.log -x .* -x *.sh -x *.log -x tests/**\*
         shell: bash
         env:
           ZIP_FILE: ${{ steps.versiongen.outputs.semver_release_number }}.zip
@@ -51,7 +51,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
+          tag_name: ${{ steps.versiongen.outputs.semver_release_string }}
           release_name: Release ${{ steps.versiongen.outputs.semver_release_string }}
           draft: false
           prerelease: ${{ steps.versiongen.outputs.semver_release_is_snapshot }}
