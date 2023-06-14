@@ -64,14 +64,20 @@ component {
 	 */
 	private void function _prepareDirectories( required struct serverInfo ) {
 		var webConfigDir      = serverInfo.webConfigDir;
+		var serverConfigDir   = serverInfo.serverConfigDir;
 
 		if ( webConfigDir.startsWith( "/WEB-INF" ) ) {
 			webConfigDir = ( serverInfo.serverHomeDirectory ?: "" ) & webConfigDir;
 		}
 
+		if ( serverConfigDir.startsWith( "/WEB-INF" ) ) {
+			serverConfigDir = ( serverInfo.serverHomeDirectory ?: "" ) & serverConfigDir;
+		}
+
 		var presideServerDir  = webConfigDir & "/preside";
 		var resourceDir       = GetDirectoryFromPath( GetCurrentTemplatePath() ) & "/../../_resources";
 		var presideInitedFile = webConfigDir & "/.presideinitialized";
+		var isLucee6orLater   = ( listFirst( listRest( serverInfo.cfengine, "@" ), "." ) gte 6 );
 
 		if ( !FileExists( presideInitedFile ) ) {
 			if ( !DirectoryExists( webConfigDir ) ) {
@@ -96,8 +102,16 @@ component {
 			var luceeWebXml = FileRead( resourceDir & "/lucee-web.xml.cfm" );
 			luceeWebXml = ReplaceNoCase( luceeWebXml, "${presideLocation}", presideLocation );
 			luceeWebXml = ReplaceNoCase( luceeWebXml, "${datasource}", datasource );
-			FileWrite( webConfigDir & "/lucee-web.xml.cfm", luceeWebXml );
-			FileWrite( webConfigDir & "/lucee-web.xml.cfm", luceeWebXml );
+	
+			if ( isLucee6orLater ) { // write config to server, for single context mode with 6+
+				var serverContextDir = serverConfigDir & "/lucee-server/context";
+				if ( !DirectoryExists( serverContextDir  ) ) {
+					DirectoryCreate( serverContextDir, true, true );
+				}
+				FileWrite( serverContextDir & "/lucee-server.xml", luceeWebXml );
+			} else {
+				FileWrite( webConfigDir & "/lucee-web.xml.cfm", luceeWebXml );
+			}
 			FileWrite( presideInitedFile, "" );
 		}
 	}
