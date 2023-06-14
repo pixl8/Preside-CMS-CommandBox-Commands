@@ -59,17 +59,20 @@ component {
 		if ( FileExists( rootAppCfc ) ) {
 			var result = ReMatchNoCase('(?:settings.preside_admin_path[ ]*=[ ]*)[""'']{1}(\w+_?\w+)[""'']{1}', FileRead( rootAppCfc ) );
 			var finalR = ReReplaceNoCase( result[1], 'settings.preside_admin_path[ ]*=[ ]*[""'']{1}(\w+_?\w+)[""'']{1}', "\1");
+			var menu = {
+				"label":"Preside",
+				"items": [
+					{ 'label':'Site Home', 'action':'openbrowser', 'url': interceptData.serverInfo.openbrowserURL },
+					{ 'label':'Site Admin', 'action':'openbrowser', 'url': '#interceptData.serverInfo.openbrowserURL#/#finalR#/' }
+				],
+				"image" : ""
+			}
 
-			interceptData.serverInfo.trayOptions.prepend(
-				{
-					"label":"Preside",
-					"items": [
-						{ 'label':'Site Home', 'action':'openbrowser', 'url': interceptData.serverInfo.openbrowserURL },
-						{ 'label':'Site Admin', 'action':'openbrowser', 'url': '#interceptData.serverInfo.openbrowserURL#/#finalR#/' }
-					],
-					"image" : ""
-				}
-			);
+			if ( IsArray( interceptData.serverInfo.trayOptions ?: "" ) ) {
+				ArrayPrepend( interceptData.serverInfo.trayOptions, menu );
+			} else {
+				interceptData.serverInfo.trayOptions = [ menu ];
+			}
 		}
 	}
 
