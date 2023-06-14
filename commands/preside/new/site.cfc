@@ -8,6 +8,7 @@ component {
 	property name="wirebox"        inject="wirebox";
 	property name="forgeBox"       inject="ForgeBox";
 
+
 	/**
 	 * @skeleton.hint The name of the app skeleton to use. Options: basic, nocms
 	 **/
@@ -15,29 +16,31 @@ component {
 		var directory = shell.pwd();
 		var templates = _getSkeletonTemplates();
 
-		while( arguments.skeleton == "" ) {
+		if ( !Len( arguments.skeleton ) ) {
 			print.yellowLine( "Looking up available skeletons from forgebox.io... (hint: register a template by adding a forgebox package matching the pattern, 'preside-skeleton-*')" );
-			print.line();
-			
+			print.line().toConsole();
+
 			if ( templates.isEmpty() ) {
 				print.line( "" );
 				print.redLine( "No preside skeleton templates could be found! Ensure you are online and that https://www.forgebox.io is up and running." );
 				print.line( "" );
-			}
+			} else {
+				var options = [];
+				var i=0;
+				for( var templateId in templates ) {
+					var template = templates[ templateId ];
 
-			print.line( "" );
-			print.line( "Available skeleton templates from which to build your new site/application:" );
-			print.line( "" );
-			for( var templateId in templates ) {
-				print.text( " * " );
-				print.yellowText( "#templateId#" );
-				print.line( ": #templates[ templateId ].description#" );
-			}
-			print.line( "" );
+					ArrayAppend( options, {
+						  value = templateId
+						, display = template.name & ( template.official ? " (OFFICIAL)" : " (by #template.author#)" ) & ": " & template.description
+						, accessKey = ++i
+					} );
+				}
 
-			arguments.skeleton = ask( "Enter the skeleton template to use: " );
-			if ( !templates.keyExists( arguments.skeleton ) ) {
-				arguments.skeleton = "";
+				arguments.skeleton = multiselect( "Choose a skeleton template to use: " ).options( options ).required().ask();
+
+				print.line( "" );
+
 			}
 		}
 
@@ -102,15 +105,31 @@ component {
 	private struct function _getSkeletonTemplates() {
 		var templates       = {};
 		var forgeboxEntries = forgebox.getEntries( typeSlug = "preside-skeletons" );
+		var official        = [ "preside-skeleton-basic", "preside-skeleton-webapp" ];
+		var ordered         = StructNew( "linked" );
 
 		for( var entry in forgeboxEntries.results ) {
 			templates[ entry.slug.replace( "preside-skeleton-", "" ) ] = {
 				  name        = entry.title
 				, description = entry.summary
 				, package     = entry.slug
+				, author      = entry.user.fullName ?: "unknown"
+				, official    = ArrayFindNoCase( official, entry.slug )
 			};
 		}
 
-		return templates;
+		if ( StructKeyExists( templates, "basic" ) ) {
+			ordered[ "basic" ] = templates.basic;
+		}
+		if ( StructKeyExists( templates, "basic" ) ) {
+			ordered[ "webapp" ] = templates.webapp;
+		}
+		for( var key in templates ) {
+			if ( !ArrayFind( [ "basic", "webapp" ], key ) ) {
+				ordered[ key ] = templates[ key ];
+			}
+		}
+
+		return ordered;
 	}
 }
