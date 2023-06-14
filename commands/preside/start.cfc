@@ -5,6 +5,7 @@
 component {
 
 	property name="interceptorService" inject="interceptorService";
+	property name="moduleService"      inject="moduleService";
 
 	/**
 	 * @port.hint port number
@@ -24,6 +25,17 @@ component {
 		, String  serverConfigFile = "server.json"
 		, String  trayIcon
 	){
+		if ( !moduleService.isModuleActive( "commandbox-cfconfig") ) {
+			print.redLine( "=================================================================" );
+			print.redLine( "CRITICAL ERROR: cfconfig not installed/enabled." );
+			print.redLine( "The preside start command relies on cfconfig to persist settings." );
+			print.line();
+			print.redLine( "Either:"                                                         );
+			print.redLine( "1. Ensure CommandBox is up to date (comes with cfconfig)"        );
+			print.redLine( "2. Install cfconfig separately: box install commandbox-cfconfig" );
+			print.redLine( "=================================================================" ).toConsole();
+			return;
+		}
 		var serverProps = arguments;
 		var osInfo      = CreateObject("java", "java.lang.System").getProperties();
 		var resourceDir = GetDirectoryFromPath( GetCurrentTemplatePath() ) & "/../../_resources";
