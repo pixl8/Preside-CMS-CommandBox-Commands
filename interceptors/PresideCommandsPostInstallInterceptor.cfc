@@ -24,7 +24,7 @@ component {
 		}
 	}
 
-	public void function onServerInstall( interceptData ) {
+	public void function onServerStart( interceptData ) {
 		var path       = interceptData.serverInfo.webroot;
 		var rootAppCfc = path.listAppend( "application/config/Config.cfc", "/" );
 
@@ -32,16 +32,15 @@ component {
 			var result = ReMatchNoCase('(?:settings.preside_admin_path[ ]*=[ ]*)[""'']{1}(\w+_?\w+)[""'']{1}', FileRead( rootAppCfc ) );
 			var finalR = ReReplaceNoCase( result[1], 'settings.preside_admin_path[ ]*=[ ]*[""'']{1}(\w+_?\w+)[""'']{1}', "\1");
 
-			interceptData.serverInfo.trayOptions.prepend(
-				{
-					"label":"Preside",
-					"items": [
-						{ 'label':'Site Home', 'action':'openbrowser', 'url': interceptData.serverInfo.openbrowserURL },
-						{ 'label':'Site Admin', 'action':'openbrowser', 'url': '#interceptData.serverInfo.openbrowserURL#/#finalR#/' }
-					],
-					"image" : ""
-				}
-			);
+			interceptData.serverInfo.trayOptions = interceptData.serverInfo.trayOptions ?: [];
+			arrayInsertAt( interceptData.serverInfo.trayOptions, arrayLen( interceptData.serverInfo.trayOptions ), {
+				"label":"Preside",
+				"items": [
+					{ 'label':'Site Home', 'action':'openbrowser', 'url': interceptData.serverInfo.openbrowserURL },
+					{ 'label':'Site Admin', 'action':'openbrowser', 'url': '#interceptData.serverInfo.openbrowserURL#/#finalR#/' }
+				],
+				"image" : ""
+			} );
 		}
 	}
 
