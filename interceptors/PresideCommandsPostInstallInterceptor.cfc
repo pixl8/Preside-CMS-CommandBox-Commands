@@ -13,10 +13,13 @@ component {
 					break;
 				}
 			}
-
-			var artifactBoxJson = interceptData.artifactDescriptor;
-			if ( _isExtension( artifactBoxJson ) ) {
-				_ensureDependenciesInstalled( artifactBoxJson, interceptData.installDirectory ?: "", interceptData.containerBoxJson ?: {} );
+			var skipPackageChecks = IsBoolean( interceptData.installArgs.skipPresidePackageChecking ?: "" ) && interceptData.installArgs.skipPresidePackageChecking;
+			if ( !skipPackageChecks ) {
+				var artifactBoxJson = interceptData.artifactDescriptor;
+				if ( _isExtension( artifactBoxJson ) ) {
+					_compatibilityChecks( artifactBoxJson, interceptData.containerBoxJson ?: {} );
+					_ensureDependenciesInstalled( artifactBoxJson, interceptData.installDirectory ?: "", interceptData.containerBoxJson ?: {} );
+				}
 			}
 		}
 	}
@@ -60,6 +63,45 @@ component {
 		return artifactType == "preside-extensions" || artifactDir == "application/extensions";
 	}
 
+	private void function _compatibilityChecks(
+		  required struct artifactDescriptor
+		, required struct containerBoxJson
+	) {
+		var compatibility = artifactDescriptor.preside.compatibility ?: {};
+		var packageSlug   = artifactDescriptor.slug ?: "no-slug";
+
+		for( var compatSlug in compatibility ) {
+			var compat = compatibility[ compatSlug ];
+			var compatible = !IsBoolean( compat.compatible ?: "" ) || compat.compatible;
+			var minVersion = compat.minVersion ?: "";
+			var maxVersion = compat.maxVersion ?: "";
+			var targetPackage = containerBoxJson.dependencies[ compatSlug ] ?: "";
+
+			if ( StructKeyExists( containerBoxJson.dependencies, compatSlug ) ) {
+				if ( !compatible ) {
+					throw(
+						  type    = "preside.extension.dependency.compatibility.issue"
+						, message = compat.message ?: "The extension [#packageSlug#] has a compatibility issue with the [#compatSlug#] package. To install [#packageSlug#], first uninstall [#compatSlug#]."
+					);
+				}
+
+				var targetVersion = _getPackageVersion( containerBoxJson.dependencies[ compatSlug ] );
+				if ( Len( minVersion ) && semanticVersion.compare( targetVersion, minVersion ) == -1 ) {
+					throw(
+						  type    = "preside.extension.dependency.compatibility.issue"
+						, message = compat.message ?: "The extension [#packageSlug#] requires that the [#compatSlug#] package be at least version: [#minVersion#]. To install [#packageSlug#], first ensure that [#compatSlug#] is upgraded to at least [#minVersion#]."
+					);
+				}
+				if ( Len( maxVersion ) && semanticVersion.compare( targetVersion, maxVersion ) == 1 ) {
+					throw(
+						  type    = "preside.extension.dependency.compatibility.issue"
+						, message = compat.message ?: "The extension [#packageSlug#] requires that the [#compatSlug#] package be at or below version: [#minVersion#]. To install [#packageSlug#], first ensure that [#compatSlug#] is downgraded to version [#minVersion#] or before."
+					);
+				}
+			}
+		}
+	}
+
 	private void function _ensureDependenciesInstalled( required struct artifactDescriptor, required string installDirectory, required struct containerBoxJson ) {
 		var dependencies = artifactDescriptor.preside.dependencies ?: {};
 		var packageSlug = artifactDescriptor.slug ?: "no-slug";
@@ -92,6 +134,9 @@ component {
 				var installedVersionRange = containerBoxJson.dependencies[ dependencySlug ];
 				if ( ListLen( installedVersionRange, "##@" ) == 2 ) {
 					installedVersionRange = ListRest( installedVersionRange, "##@" );
+				}
+				if ( ListLen( installedVersionRange, "-" ) > 1 ) {
+					installedVersionRange = ListFirst( installedVersionRange, "-" );
 				}
 
 				if ( hasMinVer && semanticVersion.compare( dependencyInfo.minVersion, installedVersionRange ) == 1 ) {
@@ -128,5 +173,13 @@ component {
 				}
 			}
 		}
+	}
+
+	private string function _getPackageVersion( packageId ) {
+		if ( ReFindNoCase( "^s3://", packageId ) ) {
+			return ReReplace( ListLast( packageId, "/" ), "\.zip$", "" );
+		}
+
+		return ListRest( packageId, "@##" )
 	}
 }

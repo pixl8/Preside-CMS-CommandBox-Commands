@@ -1,0 +1,14 @@
+{
+    "name":"presideextensioncompiler",
+    "openbrowser":false,
+    "trayEnable":false,
+    "CFConfigFile":"./cfconfig.json",
+    "fusionreactor":{
+        "enable":false
+    },
+    "web":{
+        "http":{
+            "port":"1337"
+        }
+    }
+}

@@ -1,0 +1,21 @@
+{
+    "name":"PresideCMS Extension: EXTENSIONNAME",
+    "type":"preside-extensions",
+    "version":"$VERSION_NUMBER",
+    "location":"$DOWNLOAD_URL",
+    "private":PRIVATE,
+    "author":"AUTHOR",
+    "directory":"application/extensions",
+    "repository":{
+        "type":"git",
+        "URL":"EXTENSIONURL"
+    },
+    "slug":"preside-ext-EXTENSIONSLUG",
+    "projectURL":"EXTENSIONURL",
+    "ignore":[
+        ".git/*",
+        ".gitignore",
+        ".github/*",
+        ".twgit_features_subject"
+    ]
+}

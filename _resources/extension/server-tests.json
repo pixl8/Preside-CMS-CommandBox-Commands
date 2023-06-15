@@ -1,0 +1,15 @@
+{
+    "name":"EXTENSIONSLUGtests",
+    "openbrowser":false,
+    "trayEnable":false,
+    "web":{
+        "webroot":"tests/",
+        "http":{
+            "port":"5935"
+        }
+    },
+    "JVM":{
+        "heapSize":"1024",
+        "minHeapSize":"512"
+    }
+}
