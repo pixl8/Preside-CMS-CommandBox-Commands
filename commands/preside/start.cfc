@@ -1,12 +1,11 @@
 /**
- * Start a PresideCMS server
+ * Start a Preside Application server. This is proxy to server start
+ * with some specific cfconfig configuration for Preside.
  **/
 component {
 
-	property name="serverService"           inject="ServerService";
-	property name="interceptorService"      inject="interceptorService";
-	property name="commandboxHomeDirectory" inject="HomeDir@constants";
-	property name="interactive"             default=true;
+	property name="interceptorService" inject="interceptorService";
+	property name="moduleService"      inject="moduleService";
 
 	/**
 	 * @port.hint port number
@@ -22,25 +21,29 @@ component {
 	function run(
 		  String  directory    = ""
 		, Numeric heapSize     = 1024
-		, Boolean saveSettings = false
 		, Boolean interactive  = true
-		, Numeric port
-		, Boolean openbrowser
-		, String  name
-		, Numeric stopPort
-		, Boolean force
-		, Boolean debug
+		, String  serverConfigFile = "server.json"
 		, String  trayIcon
 	){
+		if ( !moduleService.isModuleActive( "commandbox-cfconfig") ) {
+			print.redLine( "=================================================================" );
+			print.redLine( "CRITICAL ERROR: cfconfig not installed/enabled." );
+			print.redLine( "The preside start command relies on cfconfig to persist settings." );
+			print.line();
+			print.redLine( "Either:"                                                         );
+			print.redLine( "1. Ensure CommandBox is up to date (comes with cfconfig)"        );
+			print.redLine( "2. Install cfconfig separately: box install commandbox-cfconfig" );
+			print.redLine( "=================================================================" ).toConsole();
+			return;
+		}
 		var serverProps = arguments;
-		var resourceDir = GetDirectoryFromPath( GetCurrentTemplatePath() ) & "/../../_resources";
 		var osInfo      = CreateObject("java", "java.lang.System").getProperties();
+		var resourceDir = GetDirectoryFromPath( GetCurrentTemplatePath() ) & "/../../_resources";
 
-		serverProps.directory      = fileSystemUtil.resolvePath( arguments.directory );
-		serverProps.name           = serverProps.name is "" ? listLast( serverProps.directory, "\/" ) : serverProps.name;
-		serverProps.rewritesEnable = true;
-		serverProps.rewritesConfig = serverProps.directory & "/urlrewrite.xml";
-		this.interactive           = arguments.interactive;
+		serverProps.directory        = fileSystemUtil.resolvePath( arguments.directory );
+		serverProps.saveSettings     = true;
+		serverProps.rewritesEnable   = true;
+		serverProps.rewritesConfig   = serverProps.rewritesConfig ?: ( serverProps.directory & "/urlrewrite.xml" );
 
 		if ( !serverProps.keyExists( "trayIcon" ) ) {
 			if ( osInfo['os.name'].findNoCase( "Mac OS" ) || osInfo['os.name'].findNoCase( "Linux" ) ) {
@@ -50,161 +53,133 @@ component {
 			}
 		}
 
+		_ensureCfConfigSetup( argumentCollection=serverProps );
+
+		if ( serverProps.directory == fileSystemUtil.resolvePath( "" ) ) {
+			StructDelete( serverProps, "directory" );
+		}
+
 		interceptorService.registerInterceptor( this );
-		serverService.start( serverProps=serverProps );
+
+		command( "server start" ).params( argumentCollection=serverProps ).run();
 	}
 
-	function onServerStart( event, interceptData ) {
-		_prepareDirectories( interceptData.serverInfo ?: {} );
-	}
+	public void function onServerStart( interceptData ) {
+		var path       = interceptData.serverInfo.webroot;
+		var rootAppCfc = path.listAppend( "application/config/Config.cfc", "/" );
 
-	/**
-	 * Private method to setup the web config directories with Preside specific configuration
-	 *
-	 */
-	private void function _prepareDirectories( required struct serverInfo ) {
-		var webConfigDir      = serverInfo.webConfigDir;
+		if ( FileExists( rootAppCfc ) ) {
+			var regPattern = ".*\bsettings\.preside_admin_path\s*=\s*[""'](.*?)[""'].*";
+			var adminPath  = ReReplaceNoCase( FileRead( rootAppCfc ), regPattern, "\1" );
 
-		if ( webConfigDir.startsWith( "/WEB-INF" ) ) {
-			webConfigDir = ( serverInfo.serverHomeDirectory ?: "" ) & webConfigDir;
-		}
-
-		var presideServerDir  = webConfigDir & "/preside";
-		var resourceDir       = GetDirectoryFromPath( GetCurrentTemplatePath() ) & "/../../_resources";
-		var presideInitedFile = webConfigDir & "/.presideinitialized";
-
-		if ( !FileExists( presideInitedFile ) ) {
-			if ( !DirectoryExists( webConfigDir ) ) {
-				DirectoryCreate( webConfigDir, false, true );
-
-				var sourceWebConfigDirectory = commandBoxHomeDirectory & "/engine/cfml/cli/cfml-web";
-				if ( !DirectoryExists( sourceWebConfigDirectory ) ) {
-					print.line();
-					print.redLine("*************************************************************************************************************************************************************************");
-					print.redLine("Could not find server files. Please ensure you have the latest version of CommandBox. Expected to find files at [#sourceWebConfigDirectory#]");
-					print.redLine("*************************************************************************************************************************************************************************");
-					print.line();
-
-					return {};
-				}
-
-				DirectoryCopy( sourceWebConfigDirectory, webConfigDir, true );
+			if ( Len( adminPath ) ) {
+				interceptData.serverInfo.trayOptions = interceptData.serverInfo.trayOptions ?: [];
+				ArrayInsertAt( interceptData.serverInfo.trayOptions, ArrayLen( interceptData.serverInfo.trayOptions ), {
+					"label":"Preside",
+					"items": [
+						{ 'label':'Site Home', 'action':'openbrowser', 'url': interceptData.serverInfo.openbrowserURL },
+						{ 'label':'Site Admin', 'action':'openbrowser', 'url': '#interceptData.serverInfo.openbrowserURL#/#adminPath#/' }
+					],
+					"image" : ""
+				} );
 			}
-			var presideLocation = _setupPresideLocation( webConfigDir, serverInfo.webroot );
-			var datasource      = this.interactive ? _setupDatasource() : "";
-
-			var luceeWebXml = FileRead( resourceDir & "/lucee-web.xml.cfm" );
-			luceeWebXml = ReplaceNoCase( luceeWebXml, "${presideLocation}", presideLocation );
-			luceeWebXml = ReplaceNoCase( luceeWebXml, "${datasource}", datasource );
-			FileWrite( webConfigDir & "/lucee-web.xml.cfm", luceeWebXml );
-			FileWrite( webConfigDir & "/lucee-web.xml.cfm", luceeWebXml );
-			FileWrite( presideInitedFile, "" );
 		}
 	}
 
-	private string function _setupPresideLocation( required string webConfigDir, required string webroot ) {
-		var presideLocation = arguments.webroot.reReplace( "[\\/]$", "" ) & "/preside";
+	private function _ensureCfConfigSetup() {
+		var cfconfigFilePath = _getCfConfigFilePath( argumentCollection=arguments );
 
-		if ( FileExists( presideLocation & "/system/Bootstrap.cfc" ) ) {
-			print.line().toConsole();
-			print.yellowLine( "Using Preside location [#presideLocation#]..." ).toConsole();
-			print.line().toConsole();
+		print.line( "Checking/creating your cfconfig file at: [#cfconfigFilePath#]..."                    );
+		print.line( "NOTE: this is used to set Preside specific configuration and save your datasource. You should almost certainly ensure that this file is NOT commited to version control." ).toConsole();
+		print.line( "      You can also consult the CFConfig documentation to use this file to control other aspects of your Commandbox server." ).toConsole();
 
-			return presideLocation;
+		if ( !FileExists( cfconfigFilePath ) ) {
+			FileWrite( cfconfigFilePath, "{}" );
 		}
 
-		if ( !this.interactive ) {
-			return "";
+		var cfconfig = DeserializeJson( FileRead( cfconfigFilePath ) );
+
+		if ( !Len( Trim( cfconfig.datasources.preside.database ?: "" ) ) ) {
+			cfconfig[ "datasources" ] = cfconfig.datasources ?: {};
+			cfconfig.datasources[ "preside" ] = _setupDatasource( argumentCollection=arguments );
+
+			print.linLine( " " );
+			print.greenLine( "Thank you! If you have any issues with your datasource, you can configure in [#cfconfigFilePath#]" ).toConsole();
 		}
 
-		print.line().toConsole();
-		print.yellowLine( "PresideCMS core installation" ).toConsole();
-		print.yellowLine( "============================" ).toConsole();
-		print.line().toConsole();
+		cfconfig[ "templateCharset"      ] = cfconfig.templateCharset ?: "UTF-8";
+		cfconfig[ "webCharset"           ] = cfconfig.webCharset      ?: "UTF-8";
+		cfconfig[ "resourceCharset"      ] = cfconfig.resourceCharset ?: "UTF-8";
+		cfconfig[ "resourceCharset"      ] = cfconfig.resourceCharset ?: "UTF-8";
+		cfconfig[ "dotNotationUpperCase" ] = false;
 
-		print.line().toConsole();
-		var useLocalVersion = shell.ask( "Install fresh version of Preside [Y/n]? " ) == "n";
-		if ( useLocalVersion ) {
-			print.line().toConsole();
-			presideLocation = shell.ask( "Enter the path to Preside: " );
-			while( !DirectoryExists( presideLocation ) || !FileExists( presideLocation & "/system/Bootstrap.cfc" ) ) {
-				print.redLine( "The path you entered is not a valid Preside path!").toConsole();
-				presideLocation = shell.ask( "Enter the path to Preside: " );
-			}
+		FileWrite( cfconfigFilePath, formatterUtil.formatJson( cfconfig ) );
 
-		} else {
-			var validVersion   = false;
-			var presideVersion = "";
-
-			while ( !validVersion ) {
-				validVersion = true;
-
-				print.line().toConsole();
-				while( ![ "s", "b" ].findNoCase( presideVersion ) ) {
-					presideVersion  = shell.ask( "Which version of preside do you wish to install, (S)table or (B)leeding edge? [(S)/b]:" );
-					if ( !Len( Trim( presideVersion ) ) ) {
-						presideVersion = "s";
-					}
-				}
-				presideLocation = "http://downloads.presidecms.com/presidecms/" & ( presideVersion == "b" ? "bleeding-edge.zip" : "release.zip" );
-
-				var presideZip = GetTempDirectory() & "/PresideCMS.zip";
-				try {
-					print.line()
-					     .yellowLine( "Downloading Preside from [#presideLocation#]... please be patient" ).toConsole();
-					http getasBinary=true file=presideZip url=presideLocation throwOnError=true;
-				} catch ( any e ) {
-					validVersion = false;
-					print.redLine( "Invalid preside version [#presideVersion#]. No download found at [#presideLocation#]." ).toConsole();
-				}
-			}
-
-			print.yellowLine( "Download complete. Installing to [#arguments.webConfigDir#/preside]..." ).toConsole();
-
-			zip action="unzip" file="#presideZip#" destination=arguments.webConfigDir & "/preside";
-
-			var subDirs = DirectoryList( arguments.webConfigDir & "/preside", false, "query" );
-			var versionDir  = "";
-			for( var subDir in subDirs ){
-				if ( subDir.type == "Dir" && ReFindNoCase( "^presidecms-[0-9\.]+$", subDir.name ) ) {
-					versionDir = "/#subDir.name#";
-					break;
-				}
-			}
-
-			presideLocation = "{lucee-web}/preside#versionDir#";
-		}
-
-		return presideLocation;
+		print.line()
+		print.line( "Checks complete. Starting your server now..." ).toConsole();
 	}
 
-	private string function _setupDatasource() {
-		print.line().toConsole();
-		print.yellowLine( "PresideCMS datasource setup (MySQL Only)" ).toConsole();
-		print.yellowLine( "========================================" ).toConsole();
-		print.line().toConsole();
+	private string function _getCfConfigFilePath() {
+		var serverConfPath = arguments.directory & arguments.serverConfigFile;
+		if ( !FileExists( serverConfPath ) ) {
+			FileWrite( serverConfPath, formatterUtil.formatJson( { "web"={ "webroot"=arguments.directory }} ) );
+		}
+		var serverConf = SerializeJson( FileRead( serverConfPath ) );
+		var possibleKeys = [ "file", "server", "web" ];
+		var relFilePath  = "";
 
-		if ( shell.ask( "Setup MySQL datasource now [Y/n]? " ) == "n" ) {
-			return "";
+		for( var key in possibleKeys ) {
+			if ( Len( serverConfig.cfconfig[ key ] ?: "" ) ) {
+				relFilePath = serverConfig.cfconfig[ key ];
+			}
 		}
 
-		print.line().toConsole();
-		print.yellowLine( "If you have not done so already, please create your database and have credentials ready." ).toConsole();
-		print.line().toConsole();
-
-		var db    = shell.ask( "Database name: " );
-		var usr   = shell.ask( "Username: " );
-		var pass  = shell.ask( "Password: " );
-		var host  = shell.ask( "Host (localhost): " );
-		var port  = shell.ask( "Port (3306): " );
-		while( Len( Trim( port ) ) && !IsNumeric( port ) ) {
-			print.redLine( "Invalid port number!" ).toConsole();
-			port = shell.ask( "Port (3306): " );
+		if ( !Len( relFilePath ) && Len( serverConfig.cfconfigFile ?: "" ) ) {
+			relFilePath = serverConfig.cfconfigFile;
 		}
 
-		if( !Len( Trim( host ) ) ) { host = "localhost"; }
-		if( !Len( Trim( port ) ) ) { port = "3306"; }
+		if ( !Len( relFilePath ) ) {
+			relFilePath = ".cfconfig.json";
+			serverConfig[ "cfconfig" ] = serverConfig[ "cfconfig" ] ?: {};
+			serverConfig.cfconfig[ "file" ] = relFilePath;
 
-		return '<data-source allow="511" blob="false" class="org.gjt.mm.mysql.Driver" clob="true" connectionLimit="-1" connectionTimeout="1" custom="useUnicode=true&amp;characterEncoding=UTF-8" database="#db#" dbdriver="mysql" dsn="jdbc:mysql://{host}:{port}/{database}" host="#host#" metaCacheTimeout="60000" name="preside" password="#pass#" port="#port#" storage="false" username="#usr#" validate="false"/>';
+			FileWrite( serverConfPath, formatterUtil.formatJson( serverConfig ) );
+		}
+
+		return arguments.directory & relFilePath;
+
+	}
+
+	private function _setupDatasource() {
+		print.line();
+		print.greenLine( "PRESIDE DATASOURCE SETUP" );
+		print.greenLine( "========================" );
+		print.greenLine( "No Preside Datasource found. Starting wizard to create one."   );
+		print.greenLine( "NOTE: You can configure using your datasource independently in your .cfconfig file if you require a more complex datasource configuration." );
+		print.line().toConsole();
+
+		var config = {}
+
+		config[ "dbdriver" ] =  multiselect( 'Select your database engine: ' ).options( [
+			{ display='MySQL/MariaDB', value='mysql', selected=true },
+			{ display='PostgreSQL', value='postgres' },
+			{ display='Microsoft SQL Server', value='MSSQL' }
+		] ).required().ask();
+
+		config[ "database" ] = ask( message="Database name: ", required=true );
+		config[ "username" ] = ask( message="Username: " );
+		config[ "password" ] = ask( message="Password: ", mask='*' );
+		config[ "host"     ] = ask( message="Host: ", defaultResponse="localhost" );
+		config[ "port"     ] = ask( message="Port: ", defaultResponse=_getDefaultPortForDb( config.dbdriver ) );
+
+		return config;
+	}
+
+	private function _getDefaultPortForDb( dbdriver ) {
+		switch( arguments.dbdriver) {
+			case "mssql": return 1433;
+			case "postgres": return 5432;
+			default: return 3306;
+		}
 	}
 }
