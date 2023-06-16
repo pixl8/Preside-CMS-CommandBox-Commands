@@ -1,5 +1,10 @@
 # Changelog
 
+## 7.0.0
+
+Rewrite of core commands to bring up to date with latest changes and approaches from Commandbox. We now use cfconfig
+for `preside server start` and have resolved the issues with datasource prompts overlapping Commandbox text
+
 ## 6.1.6
 
 * Fix for broken paths in Gruntfile generated for new extension command when choosing to manage static assets with grunt
