@@ -1,5 +1,9 @@
 # Changelog
 
+## 7.0.1
+
+* Fix issue where dependencies installed in ways other then box.json would be overwritten when marked as a dependency of another extension. Causing issues with the wrong versions of software being installed.
+
 ## 7.0.0
 
 Rewrite of core commands to bring up to date with latest changes and approaches from Commandbox. We now use cfconfig
