@@ -116,26 +116,29 @@ component {
 			try {
 				var depboxjson = DeserializeJson( FileRead( depBoxJsonLocation ) );
 			} catch( any e ) {
+
 				return false;
 			}
 
 			versionInstalled = depboxjson.version ?: "";
 		}
 
-		if ( Len( Trim( versionInstalled ) ) && ( hasMinVer || hasMaxVer ) ) {
-			if ( ListLen( versionInstalled, "##@" ) == 2 ) {
-				versionInstalled = ListRest( versionInstalled, "##@" );
-			}
-			if ( ListLen( versionInstalled, "-" ) > 1 ) {
-				versionInstalled = ListFirst( versionInstalled, "-" );
-			}
+		if ( Len( Trim( versionInstalled ) ) ) {
+			if ( hasMinVer || hasMaxVer ) {
+				if ( ListLen( versionInstalled, "##@" ) == 2 ) {
+					versionInstalled = ListRest( versionInstalled, "##@" );
+				}
+				if ( ListLen( versionInstalled, "-" ) > 1 ) {
+					versionInstalled = ListFirst( versionInstalled, "-" );
+				}
 
-			if ( hasMinVer && semanticVersion.compare( dependencyInfo.minVersion, versionInstalled ) == 1 ) {
-				throw( type="preside.extension.dependency.version.mismatch", message="The already installed dependency [#dependencySlug#] of package [#packageSlug#] does not meet the minimum version requirement of [#dependencyInfo.minVersion#]. Please upgrade your [#dependencySlug#] extension to continue." );
-			}
+				if ( hasMinVer && semanticVersion.compare( dependencyInfo.minVersion, versionInstalled ) == 1 ) {
+					throw( type="preside.extension.dependency.version.mismatch", message="The already installed dependency [#dependencySlug#] of package [#packageSlug#] does not meet the minimum version requirement of [#dependencyInfo.minVersion#]. Please upgrade your [#dependencySlug#] extension to continue." );
+				}
 
-			if ( hasMaxVer && semanticVersion.compare( versionInstalled, dependencyInfo.maxVersion ) == 1 ) {
-				throw( type="preside.extension.dependency.version.mismatch", message="The already installed dependency [#dependencySlug#] of package [#packageSlug#] exceeds the maximum version requirement of [#dependencyInfo.maxVersion#]. You will need to manually resolve this situation by either downgrading [#dependencySlug#], installing a later version of [#packageSlug#], or getting the package maintainers of [#packageSlug#] to update the package to be compatible with later versions of [#dependencySlug#]." );
+				if ( hasMaxVer && semanticVersion.compare( versionInstalled, dependencyInfo.maxVersion ) == 1 ) {
+					throw( type="preside.extension.dependency.version.mismatch", message="The already installed dependency [#dependencySlug#] of package [#packageSlug#] exceeds the maximum version requirement of [#dependencyInfo.maxVersion#]. You will need to manually resolve this situation by either downgrading [#dependencySlug#], installing a later version of [#packageSlug#], or getting the package maintainers of [#packageSlug#] to update the package to be compatible with later versions of [#dependencySlug#]." );
+				}
 			}
 
 			return true;
