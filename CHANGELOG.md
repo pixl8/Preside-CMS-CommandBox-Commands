@@ -1,5 +1,9 @@
 # Changelog
 
+## 7.0.2
+
+* Fix issue where declared extensions dependencies with no min/max version always overwrite previously installed versions (even if a lower version)
+
 ## 7.0.1
 
 * Fix issue where dependencies installed in ways other then box.json would be overwritten when marked as a dependency of another extension. Causing issues with the wrong versions of software being installed.
