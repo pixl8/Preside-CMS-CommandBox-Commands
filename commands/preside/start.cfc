@@ -133,9 +133,10 @@ component {
 	}
 
 	private string function _getCfConfigFilePath() {
-		var serverConfig = getServerConfig( arguments.directory, arguments.serverConfigFile );
-		var possibleKeys = [ "file", "server", "web" ];
-		var relFilePath  = "";
+		var serverConfPath = arguments.directory & arguments.serverConfigFile;
+		var serverConfig   = getServerConfig( arguments.directory, arguments.serverConfigFile );
+		var possibleKeys   = [ "file", "server", "web" ];
+		var relFilePath    = "";
 
 		for( var key in possibleKeys ) {
 			if ( Len( serverConfig.cfconfig[ key ] ?: "" ) ) {
