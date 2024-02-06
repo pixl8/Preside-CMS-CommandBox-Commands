@@ -45,8 +45,12 @@ component {
 		serverProps.rewritesEnable   = true;
 		serverProps.rewritesConfig   = serverProps.rewritesConfig ?: ( serverProps.directory & "/urlrewrite.xml" );
 
-		if ( !serverProps.keyExists( "trayIcon" ) ) {
-			if ( osInfo['os.name'].findNoCase( "Mac OS" ) || osInfo['os.name'].findNoCase( "Linux" ) ) {
+		var serverConfig = getServerConfig( arguments.directory, arguments.serverConfigFile );
+		if ( Len( serverConfig?.trayIcon ) && !StructKeyExists( serverProps, "trayIcon" ) ) {
+			serverProps.trayIcon = serverConfig.trayIcon;
+		}
+		if ( !StructKeyExists( serverProps, "trayIcon" ) ) {
+			if ( FindNoCase( osInfo['os.name'], "Mac OS" ) || FindNoCase( osInfo['os.name'], "Linux" ) ) {
 				serverProps.trayIcon = resourceDir & "/trayicon_hires.png";
 			} else {
 				serverProps.trayIcon = resourceDir & "/trayicon.png";
@@ -119,12 +123,17 @@ component {
 		print.line( "Checks complete. Starting your server now..." ).toConsole();
 	}
 
-	private string function _getCfConfigFilePath() {
+	private struct function getServerConfig( required string directory, required string serverConfigFile ) {
 		var serverConfPath = arguments.directory & arguments.serverConfigFile;
 		if ( !FileExists( serverConfPath ) ) {
 			FileWrite( serverConfPath, formatterUtil.formatJson( { "web"={ "webroot"=arguments.directory }} ) );
 		}
-		var serverConf = SerializeJson( FileRead( serverConfPath ) );
+
+		return DeserializeJson( FileRead( serverConfPath ) );
+	}
+
+	private string function _getCfConfigFilePath() {
+		var serverConfig = getServerConfig( arguments.directory, arguments.serverConfigFile );
 		var possibleKeys = [ "file", "server", "web" ];
 		var relFilePath  = "";
 
