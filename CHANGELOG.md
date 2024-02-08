@@ -1,5 +1,10 @@
 # Changelog
 
+## 7.0.3
+
+* Fix issue where server.json would always be overwritten
+* Ensure custom trayIcons are not overwritten by the default
+
 ## 7.0.2
 
 * Fix issue where declared extensions dependencies with no min/max version always overwrite previously installed versions (even if a lower version)
