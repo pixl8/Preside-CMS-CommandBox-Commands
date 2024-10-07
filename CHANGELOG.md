@@ -1,5 +1,9 @@
 # Changelog
 
+## 7.0.7
+
+* [#24](https://github.com/pixl8/Preside-CMS-CommandBox-Commands/pull/24) Sort order issue for app skeletons
+
 ## 7.0.6
 
 * [#23](https://github.com/pixl8/Preside-CMS-CommandBox-Commands/issues/23) Temporarily hardcode a better mysql driver that works with more versions of mysql and mariadb out of the box
