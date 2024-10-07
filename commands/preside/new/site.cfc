@@ -121,7 +121,7 @@ component {
 		if ( StructKeyExists( templates, "basic" ) ) {
 			ordered[ "basic" ] = templates.basic;
 		}
-		if ( StructKeyExists( templates, "basic" ) ) {
+		if ( StructKeyExists( templates, "webapp" ) ) {
 			ordered[ "webapp" ] = templates.webapp;
 		}
 		for( var key in templates ) {
